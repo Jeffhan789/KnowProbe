@@ -1,4 +1,7 @@
-# 知探 KnowProbe v2.0
+# KnowProbe（知探）
+
+> English first. 中文版见后文。
+> [English](#overview) | [中文](#概述)
 
 > **Knowledge-Grounded Question Generation and RAG Evaluation Platform**
 >
@@ -9,13 +12,11 @@
 [![FastAPI](https://img.shields.io/badge/FastAPI-0.111%2B-009688)](https://fastapi.tiangolo.com/)
 [![Streamlit](https://img.shields.io/badge/Streamlit-1.35%2B-FF4B4B)](https://streamlit.io/)
 
-[English](#overview) | [中文](#概述)
-
 ---
 
 ## Overview
 
-KnowProbe v2 is a complete engineering upgrade of the original COMP390 Final Year Project research prototype. It transforms the controlled study of knowledge-base question generation into a deployable, extensible platform with:
+KnowProbe（知探） v2 is a complete engineering upgrade of the original COMP390 Final Year Project research prototype. It transforms the controlled study of knowledge-base question generation into a deployable, extensible platform with:
 
 - **Multi-backend LLM support** — Ollama, vLLM, Transformers, OpenAI, DeepSeek, Claude
 - **Rich prompt strategy library** — Zero-shot, Few-shot, Chain-of-Thought, Self-Consistency, ReAct
@@ -29,7 +30,7 @@ KnowProbe v2 is a complete engineering upgrade of the original COMP390 Final Yea
 
 ## 概述
 
-KnowProbe v2 是 COMP390 本科毕业设计研究原型的完整工程化升级。它将知识库问题生成的受控研究转化为可部署、可扩展的平台，具备：
+KnowProbe（知探） v2 是 COMP390 本科毕业设计研究原型的完整工程化升级。它将知识库问题生成的受控研究转化为可部署、可扩展的平台，具备：
 
 - **多后端 LLM 支持** — Ollama、vLLM、Transformers、OpenAI、DeepSeek、Claude
 - **丰富的提示策略库** — Zero-shot、Few-shot、Chain-of-Thought、Self-Consistency、ReAct
@@ -158,7 +159,7 @@ knowprobe/
 ## Features
 
 ### 1. Knowledge Input Processing
-- Parse **factual triples** `(S, P, O)`, **schema relations**, **free text**, and **entity descriptions**
+- Parse **factual triples** `(S, P, O)`, **schema relations**, **free text`, and **entity descriptions**
 - Auto-detect input type with heuristic classification
 - Batch processing with error isolation
 
@@ -196,7 +197,7 @@ knowprobe/
 
 ## Configuration
 
-KnowProbe uses a layered configuration system:
+KnowProbe（知探） uses a layered configuration system:
 
 1. **Default config** (`configs/default.yaml`)
 2. **Local config** (`configs/local.yaml` — gitignored)
