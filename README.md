@@ -1,5 +1,13 @@
 # Large Language Model for Question Generation from Knowledge Bases
 
+> English first. 中文版见后文。
+
+[English](#project-overview) | [中文](#基于知识库生成问题的大语言模型研究)
+
+**Featured research project**
+
+This bilingual repository presents a controlled study of question generation from structured knowledge inputs. It focuses on model comparison, prompt strategy, factual versus schema-level questions, evaluation, and reproducibility boundaries.
+
 > This repository is a public-facing project showcase for my COMP390 Final Year Project. The full dissertation, source code, experimental outputs, and datasets will be released only after the formal university submission process is completed and when it is academically appropriate to disclose further details.
 
 ## Project Overview
@@ -105,9 +113,9 @@ After the formal university submission process is completed, and when it is appr
 
 ## Project Status
 
-Status: Final Year Project in progress.
+Status: Public research overview with controlled disclosure scope.
 
-Full technical details will be disclosed at an appropriate time after the academic submission process is complete.
+The repository currently documents the research question, experimental design, reported findings, application relevance, and disclosure boundary. Additional code, samples, outputs, or dissertation material will be released only after academic and administrative clearance has been confirmed.
 
 ## Personal Note
 
@@ -224,9 +232,9 @@ This project reflects my interest in applied LLM systems, knowledge-base questio
 
 ## 项目状态
 
-当前状态：本科毕业设计进行中。
+当前状态：受控公开范围下的研究项目概览。
 
-完整技术细节将在学校正式提交完成后，于合适时间进一步公开。
+仓库目前公开研究问题、实验设计、已报告发现、应用价值与披露边界。更多代码、样例、实验输出或论文材料，只有在确认符合学校学术与行政要求后才会发布。
 
 ## 个人说明
 
