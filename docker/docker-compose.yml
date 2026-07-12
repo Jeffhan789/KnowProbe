@@ -1,0 +1,53 @@
+version: "3.9"
+
+services:
+  api:
+    build:
+      context: ..
+      dockerfile: docker/Dockerfile
+      target: production
+    container_name: knowprobe-api
+    ports:
+      - "8000:8000"
+    environment:
+      - KNOWPROBE_ENV=production
+      - KNOWPROBE_DB_URL=sqlite:///data/knowprobe.db
+    volumes:
+      - knowprobe-data:/app/data
+      - knowprobe-models:/app/models
+    networks:
+      - knowprobe-network
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  dashboard:
+    build:
+      context: ..
+      dockerfile: docker/Dockerfile
+      target: dev
+    container_name: knowprobe-dashboard
+    ports:
+      - "8501:8501"
+    environment:
+      - KNOWPROBE_ENV=development
+      - KNOWPROBE_API_URL=http://api:8000
+    volumes:
+      - ../src:/app/src
+      - ../examples:/app/examples
+      - knowprobe-data:/app/data
+    command: ["streamlit", "run", "src/knowprobe/dashboard/app.py", "--server.port=8501", "--server.address=0.0.0.0"]
+    networks:
+      - knowprobe-network
+    depends_on:
+      - api
+
+volumes:
+  knowprobe-data:
+  knowprobe-models:
+
+networks:
+  knowprobe-network:
+    driver: bridge

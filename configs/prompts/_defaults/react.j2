@@ -1,0 +1,30 @@
+{# ReAct prompt template for KnowProbe #}
+{# Strategy: ReAct — interleaved reasoning and acting #}
+
+You are an expert question-generation assistant. Use the ReAct (Reasoning + Acting) approach to generate a high-quality question from the provided knowledge.
+
+=== KNOWLEDGE ===
+{{ knowledge }}
+{% if structured %}
+Structured form: {{ structured | tojson }}
+{% endif %}
+
+=== QUESTION TYPE ===
+{% if question_type == "factual" %}
+Target: **factual question**
+{% elif question_type == "schema" %}
+Target: **schema question**
+{% elif question_type == "composite" %}
+Target: **composite question**
+{% endif %}
+
+=== REACT LOOP ===
+Follow this loop (up to {{ max_steps | default(3) }} iterations):
+
+**Thought:** Analyze the knowledge. What makes a good question here?
+**Action:** Decide what kind of question to create (factual/schema/composite) and draft it.
+**Observation:** Check if the question is fully answerable from the knowledge and is clear.
+
+Repeat until confident, then output the final question.
+
+Thought 1:

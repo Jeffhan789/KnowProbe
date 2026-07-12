@@ -1,0 +1,84 @@
+# KnowProbe Application Configuration
+# Override via env vars: KNOWPROBE_* or .env file
+
+app:
+  name: "KnowProbe"
+  version: "2.0.0"
+  environment: "development"  # development | production | testing
+  debug: false
+  log_level: "INFO"
+
+database:
+  url: "sqlite:///data/knowprobe.db"
+  echo: false
+
+models:
+  # Local model settings (via Ollama or vLLM)
+  local:
+    provider: "ollama"  # ollama | vllm | transformers
+    base_url: "http://localhost:11434"
+    default_model: "llama3.1:8b"
+    timeout: 300
+  # API model settings
+  api:
+    openai:
+      api_key: ""  # Set via env: OPENAI_API_KEY
+      base_url: "https://api.openai.com/v1"
+      default_model: "gpt-4o-mini"
+    deepseek:
+      api_key: ""  # Set via env: DEEPSEEK_API_KEY
+      base_url: "https://api.deepseek.com/v1"
+      default_model: "deepseek-chat"
+    claude:
+      api_key: ""  # Set via env: ANTHROPIC_API_KEY
+      base_url: "https://api.anthropic.com"
+      default_model: "claude-3-haiku-20240307"
+
+generation:
+  max_length: 256
+  temperature: 0.7
+  top_p: 0.9
+  top_k: 50
+  num_beams: 1
+  do_sample: true
+  batch_size: 8
+
+evaluation:
+  metrics:
+    - bleu
+    - rouge
+    - bert_score
+    - llm_judge
+  llm_judge:
+    model: "gpt-4o-mini"
+    criteria:
+      - relevance
+      - fluency
+      - answerability
+      - structural_grounding
+
+rag:
+  embedding_model: "sentence-transformers/all-MiniLM-L6-v2"
+  chunk_size: 512
+  chunk_overlap: 50
+  top_k: 5
+  retriever: "dense"  # dense | hybrid | sparse
+
+prompts:
+  strategy: "cot"  # zero_shot | few_shot | cot | self_consistency
+  templates_dir: "configs/prompts"
+  few_shot_examples: 3
+  self_consistency_samples: 5
+
+api:
+  host: "0.0.0.0"
+  port: 8000
+  workers: 1
+  cors_origins:
+    - "http://localhost:3000"
+    - "http://localhost:8501"
+
+dashboard:
+  port: 8501
+  title: "KnowProbe Dashboard"
+  page_icon: "🔍"

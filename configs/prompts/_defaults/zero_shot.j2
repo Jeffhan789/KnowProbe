@@ -1,0 +1,27 @@
+{# Zero-shot prompt template for KnowProbe #}
+{# Strategy: Zero-shot — direct generation without examples #}
+
+You are an expert question-generation assistant. Your task is to generate a high-quality, natural-language question based **only** on the provided knowledge. The question must be fully answerable using the given knowledge alone.
+
+=== KNOWLEDGE ===
+{{ knowledge }}
+{% if structured %}
+Structured form: {{ structured | tojson }}
+{% endif %}
+
+=== QUESTION TYPE ===
+{% if question_type == "factual" %}
+Generate a **factual question** that asks about a specific entity, attribute, or relation explicitly stated in the knowledge. The question should test recall of a concrete fact.
+{% elif question_type == "schema" %}
+Generate a **schema question** that asks about the structure, types, categories, or relationships among entities in the knowledge. The question should test understanding of how knowledge is organized.
+{% elif question_type == "composite" %}
+Generate a **composite (multi-hop) question** that requires combining multiple facts or making a simple inference across the provided knowledge. The question should not introduce external information.
+{% endif %}
+
+=== REQUIREMENTS ===
+- The question MUST be answerable using ONLY the provided knowledge.
+- Do NOT include information not present in the knowledge.
+- The question should be grammatically correct and natural.
+- Output ONLY the question text, with no extra explanation or preamble.
+
+Question:

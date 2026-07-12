@@ -1,0 +1,86 @@
+# Few-shot example bank for KnowProbe
+# These examples are used by Few-shot, CoT, and Self-Consistency strategies
+
+examples:
+  # ── Factual examples ──
+  - knowledge: "Albert Einstein was a German-born theoretical physicist who developed the theory of relativity."
+    question: "What is the nationality of Albert Einstein?"
+    question_type: "factual"
+    strategy: "few_shot"
+    metadata:
+      domain: "science"
+      difficulty: "easy"
+
+  - knowledge: "The Amazon River is the largest river by discharge volume of water in the world, located in South America."
+    question: "Which river has the largest discharge volume of water in the world?"
+    question_type: "factual"
+    strategy: "few_shot"
+    metadata:
+      domain: "geography"
+      difficulty: "easy"
+
+  - knowledge: "Python is a high-level programming language created by Guido van Rossum and first released in 1991."
+    question: "Who created the Python programming language?"
+    question_type: "factual"
+    strategy: "few_shot"
+    metadata:
+      domain: "technology"
+      difficulty: "easy"
+
+  - knowledge: "Photosynthesis is the process by which green plants and some other organisms use sunlight to synthesize foods with the help of chlorophyll."
+    question: "What pigment is essential for photosynthesis in green plants?"
+    question_type: "factual"
+    strategy: "few_shot"
+    metadata:
+      domain: "biology"
+      difficulty: "medium"
+
+  # ── Schema examples ──
+  - knowledge: "Entity: Employee; Attributes: id, name, department, salary; Relations: Employee works_in Department, Employee reports_to Manager."
+    question: "What are the attributes of the Employee entity, and how does it relate to Department?"
+    question_type: "schema"
+    strategy: "few_shot"
+    metadata:
+      domain: "database"
+      difficulty: "medium"
+
+  - knowledge: "Book (title, author, ISBN, publication_year); Author (name, nationality, birth_year); Book written_by Author."
+    question: "Describe the relationship between Book and Author in this schema."
+    question_type: "schema"
+    strategy: "few_shot"
+    metadata:
+      domain: "library"
+      difficulty: "easy"
+
+  - knowledge: "Movie: title, genre, release_date, director; Director: name, nationality, awards; Movie directed_by Director."
+    question: "Which attributes of the Movie entity could be used to categorize movies, and how is Movie connected to Director?"
+    question_type: "schema"
+    strategy: "few_shot"
+    metadata:
+      domain: "entertainment"
+      difficulty: "medium"
+
+  # ── Composite examples ──
+  - knowledge: "Marie Curie was a physicist and chemist. She won the Nobel Prize in Physics in 1903 and the Nobel Prize in Chemistry in 1911."
+    question: "Which scientist won Nobel Prizes in two different scientific fields, and what were those fields?"
+    question_type: "composite"
+    strategy: "few_shot"
+    metadata:
+      domain: "science"
+      difficulty: "medium"
+
+  - knowledge: "The Pacific Ocean is the largest ocean on Earth. It covers more than 30% of Earth's surface. The Mariana Trench is located in the western Pacific Ocean."
+    question: "In which ocean is the deepest known point on Earth located, and what percentage of Earth's surface does that ocean cover?"
+    question_type: "composite"
+    strategy: "few_shot"
+    metadata:
+      domain: "geography"
+      difficulty: "hard"
+
+  - knowledge: "Java is a programming language developed by Sun Microsystems. It is designed to have as few implementation dependencies as possible, allowing code to run on all platforms that support Java."
+    question: "Which programming language was developed by Sun Microsystems and is designed to run on all platforms with minimal implementation dependencies?"
+    question_type: "composite"
+    strategy: "few_shot"
+    metadata:
+      domain: "technology"
+      difficulty: "medium"

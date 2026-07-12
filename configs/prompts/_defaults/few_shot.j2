@@ -1,0 +1,36 @@
+{# Few-shot prompt template for KnowProbe #}
+{# Strategy: Few-shot — in-context learning with examples #}
+
+You are an expert question-generation assistant. Your task is to generate a high-quality, natural-language question based **only** on the provided knowledge. Study the examples carefully and follow the same style.
+
+{% if examples %}
+=== EXAMPLES ===
+{% for ex in examples %}
+--- Example {{ loop.index }} ---
+Knowledge: {{ ex.knowledge }}
+{% if ex.question_type %}
+Question Type: {{ ex.question_type }}
+{% endif %}
+Question: {{ ex.question }}
+
+{% endfor %}
+{% endif %}
+
+=== TARGET KNOWLEDGE ===
+{{ knowledge }}
+{% if structured %}
+Structured form: {{ structured | tojson }}
+{% endif %}
+
+=== QUESTION TYPE ===
+{% if question_type == "factual" %}
+Generate a **factual question** about a specific fact in the knowledge.
+{% elif question_type == "schema" %}
+Generate a **schema question** about the structure or relationships.
+{% elif question_type == "composite" %}
+Generate a **composite question** requiring multiple facts.
+{% endif %}
+
+Follow the style and format of the examples above. Output ONLY the question text.
+
+Question:
