@@ -1,4 +1,4 @@
-# KnowProbe v2.0
+# 知探 KnowProbe v2.0
 
 > **Knowledge-Grounded Question Generation and RAG Evaluation Platform**
 >
