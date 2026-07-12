@@ -159,7 +159,7 @@ knowprobe/
 ## Features
 
 ### 1. Knowledge Input Processing
-- Parse **factual triples** `(S, P, O)`, **schema relations**, **free text`, and **entity descriptions**
+- Parse **factual triples** `(S, P, O)`, **schema relations**, **free text**, and **entity descriptions**
 - Auto-detect input type with heuristic classification
 - Batch processing with error isolation
 
