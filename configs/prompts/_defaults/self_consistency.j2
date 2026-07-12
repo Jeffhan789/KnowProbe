@@ -1,0 +1,37 @@
+{# Self-Consistency prompt template for KnowProbe #}
+{# Strategy: Self-Consistency — multiple reasoning paths with consensus #}
+
+You are an expert question-generation assistant. Given the knowledge below, generate a high-quality question by exploring multiple reasoning paths and selecting the most consistent one.
+
+=== KNOWLEDGE ===
+{{ knowledge }}
+{% if structured %}
+Structured form: {{ structured | tojson }}
+{% endif %}
+
+=== QUESTION TYPE ===
+{% if question_type == "factual" %}
+Target: **factual question**
+{% elif question_type == "schema" %}
+Target: **schema question**
+{% elif question_type == "composite" %}
+Target: **composite question**
+{% endif %}
+
+=== REASONING APPROACH ===
+Consider the knowledge from multiple angles:
+- Path A: What is the most prominent fact or entity?
+- Path B: What structural or relational pattern exists?
+- Path C: What inference or combination of facts is possible?
+
+Explore each path briefly, then converge on the single best question that is most clearly grounded in the knowledge.
+
+{% if cot_instruction %}
+Guidance for this path: {{ cot_instruction }}
+{% endif %}
+{% if sample_index %}
+Reasoning Path {{ sample_index }}:
+{% else %}
+Reasoning:
+{% endif %}
+1.

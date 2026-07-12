@@ -1,0 +1,37 @@
+{# Few-shot prompt for schema questions #}
+{# Strategy: Include schema-specific examples to guide output #}
+你是一位知识图谱Schema分析专家。请根据以下Schema描述生成一个**Schema层面的问题**。
+
+## 示例
+{% for example in examples %}
+### 示例 {{ loop.index }}
+Schema内容：{{ example.knowledge.content }}
+问题：{{ example.question }}
+{% endfor %}
+
+## 要求
+- 问题应关注Schema结构、类型定义、属性约束或关系模式
+- 可以涉及：类/类型的定义、属性的domain/range、继承关系、约束条件等
+- 问题必须是疑问句，以问号结尾
+- 只生成一个问题，不要生成多个
+- 不要添加任何解释、前言或后缀
+- 风格与示例保持一致
+
+## Schema内容
+{% if knowledge.input_type == 'schema' %}
+Schema定义：{{ knowledge.content }}
+{% if knowledge.structured %}
+结构化Schema：{{ knowledge.structured | tojson }}
+{% endif %}
+{% else %}
+{{ knowledge.content }}
+{% endif %}
+
+{% if knowledge.metadata %}
+## 元信息
+{% for key, value in knowledge.metadata.items() %}
+- {{ key }}: {{ value }}
+{% endfor %}
+{% endif %}
+
+## 请生成Schema问题（参考示例风格）

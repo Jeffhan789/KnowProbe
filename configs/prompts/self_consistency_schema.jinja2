@@ -1,0 +1,37 @@
+{# Self-Consistency prompt for schema questions #}
+{# Strategy: Generate multiple reasoning paths for schema understanding #}
+你是一位知识图谱Schema分析专家。请根据以下Schema描述，从**多个角度**生成一个**Schema层面的问题**。
+
+## 要求
+- 生成 {{ self_consistency_n | default(5) }} 个不同角度的问题候选
+- 每个候选应从不同的Schema关注点出发（如：类型层次、属性约束、关系定义、继承模式等）
+- 对每个候选，简要说明你的思考角度
+- 最后，选择最清晰、最相关的Schema问题作为最终输出
+
+## Schema内容
+{% if knowledge.input_type == 'schema' %}
+Schema定义：{{ knowledge.content }}
+{% if knowledge.structured %}
+结构化Schema：{{ knowledge.structured | tojson }}
+{% endif %}
+{% else %}
+{{ knowledge.content }}
+{% endif %}
+
+{% if knowledge.metadata %}
+## 元信息
+{% for key, value in knowledge.metadata.items() %}
+- {{ key }}: {{ value }}
+{% endfor %}
+{% endif %}
+
+## 请生成多角度的Schema候选问题
+
+{% for i in range(self_consistency_n | default(5)) %}
+### 候选 {{ i + 1 }}
+角度：
+问题：
+{% endfor %}
+
+## 最终选择
+请从上述候选中选择最佳Schema问题（只输出问题本身，不输出解释）：

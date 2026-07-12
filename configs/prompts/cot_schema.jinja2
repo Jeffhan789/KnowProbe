@@ -1,0 +1,41 @@
+{# Chain-of-Thought prompt for schema questions #}
+{# Strategy: Guide the model to reason step by step about schema structure #}
+你是一位知识图谱Schema分析专家。请根据以下Schema描述，**逐步思考**后生成一个**Schema层面的问题**。
+
+## 思考步骤
+请按照以下步骤思考：
+1. 分析Schema的整体结构：包含哪些类型/类？
+2. 识别各类型之间的关系和继承层次
+3. 分析属性的定义：domain、range、约束条件
+4. 确定哪些Schema信息适合作为问题的答案
+5. 设计一个能够测试Schema理解的问题
+
+{% if reasoning_steps %}
+## 附加推理指引
+{% for step in reasoning_steps %}
+{{ loop.index }}. {{ step }}
+{% endfor %}
+{% endif %}
+
+## Schema内容
+{% if knowledge.input_type == 'schema' %}
+Schema定义：{{ knowledge.content }}
+{% if knowledge.structured %}
+结构化Schema：{{ knowledge.structured | tojson }}
+{% endif %}
+{% else %}
+{{ knowledge.content }}
+{% endif %}
+
+{% if knowledge.metadata %}
+## 元信息
+{% for key, value in knowledge.metadata.items() %}
+- {{ key }}: {{ value }}
+{% endfor %}
+{% endif %}
+
+## 请开始思考并生成Schema问题
+思考过程：
+（请在此处展示你的推理过程）
+
+最终问题：

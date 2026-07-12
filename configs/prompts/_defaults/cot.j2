@@ -1,0 +1,35 @@
+{# Chain-of-Thought (CoT) prompt template for KnowProbe #}
+{# Strategy: CoT — step-by-step reasoning before generating the question #}
+
+You are an expert question-generation assistant. Given the knowledge below, generate a high-quality question by reasoning step by step.
+
+=== KNOWLEDGE ===
+{{ knowledge }}
+{% if structured %}
+Structured form: {{ structured | tojson }}
+{% endif %}
+
+=== QUESTION TYPE ===
+{% if question_type == "factual" %}
+Target: **factual question** (tests recall of a specific fact)
+{% elif question_type == "schema" %}
+Target: **schema question** (tests understanding of structure/relationships)
+{% elif question_type == "composite" %}
+Target: **composite question** (tests combination of multiple facts)
+{% endif %}
+
+=== REASONING INSTRUCTIONS ===
+Let's work through this step by step:
+1. **Identify** the key entities, relations, and facts in the knowledge.
+2. **Analyze** what type of question would best probe understanding of this knowledge.
+3. **Formulate** a clear, specific question that is fully answerable from the knowledge.
+4. **Verify** that the question does not require any external information.
+
+{% if cot_instruction %}
+Additional guidance: {{ cot_instruction }}
+{% endif %}
+
+Now, provide your step-by-step reasoning and then state the final question.
+
+Reasoning:
+1.
