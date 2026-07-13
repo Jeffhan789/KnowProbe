@@ -29,6 +29,7 @@ app = typer.Typer(
     name="knowprobe",
     help="KnowProbe: Knowledge-Grounded Question Generation and RAG Evaluation Platform",
     no_args_is_help=True,
+    invoke_without_command=True,
     rich_markup_mode="rich",
     add_completion=True,
 )
