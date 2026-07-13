@@ -8,10 +8,12 @@ import yaml
 from pydantic import BaseModel, Field
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
+from knowprobe import __version__
+
 
 class AppConfig(BaseModel):
     name: str = "KnowProbe"
-    version: str = "2.0.0"
+    version: str = __version__
     environment: str = "development"
     debug: bool = False
     log_level: str = "INFO"

@@ -11,6 +11,7 @@ import yaml
 from rich.syntax import Syntax
 from rich.table import Table
 
+from knowprobe import __version__
 from knowprobe.core.config import get_settings, load_settings
 from knowprobe.utils.logging import configure_logging, get_logger
 
@@ -223,12 +224,12 @@ def init_config(
             raise typer.Exit(1)
 
         # Create default config content
-        default_config = """# KnowProbe Local Configuration
+        default_config = f"""# KnowProbe Local Configuration
 # Copy this file and customize for your environment
 
 app:
   name: "KnowProbe"
-  version: "2.0.0"
+  version: "{__version__}"
   environment: "development"
   debug: false
   log_level: "INFO"
