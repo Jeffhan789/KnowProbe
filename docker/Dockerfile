@@ -8,17 +8,16 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     curl \
     && rm -rf /var/lib/apt/lists/*
 
-# Install Python dependencies
-COPY pyproject.toml ./
-RUN pip install --no-cache-dir -e ".[all]"
-
-# Copy source code
+# Copy packaging metadata and source before installation. Setuptools needs the
+# src tree to resolve packages, and the declared README must be present while
+# building metadata.
+COPY pyproject.toml README.md LICENSE ./
 COPY src/ ./src/
+RUN pip install --no-cache-dir .
+
+# Copy runtime examples and configuration after the dependency layer.
 COPY configs/ ./configs/
 COPY examples/ ./examples/
-
-# Install the package
-RUN pip install --no-cache-dir -e .
 
 # Expose ports
 EXPOSE 8000 8501
