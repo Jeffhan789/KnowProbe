@@ -113,5 +113,5 @@ def ensure_session_state(key: str, default: Any) -> Any:
 def clear_session_state(pattern: str) -> None:
     """Remove all session state keys matching a substring."""
     for key in list(st.session_state.keys()):
-        if pattern in key:
+        if pattern in str(key):
             del st.session_state[key]
