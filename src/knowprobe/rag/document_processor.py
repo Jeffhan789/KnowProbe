@@ -27,9 +27,7 @@ class FixedSizeChunking(ChunkingStrategy):
         if chunk_size <= 0:
             raise ValueError(f"chunk_size must be positive, got {chunk_size}")
         if chunk_overlap < 0 or chunk_overlap >= chunk_size:
-            raise ValueError(
-                f"chunk_overlap must be in [0, chunk_size), got {chunk_overlap}"
-            )
+            raise ValueError(f"chunk_overlap must be in [0, chunk_size), got {chunk_overlap}")
         self.chunk_size = chunk_size
         self.chunk_overlap = chunk_overlap
         logger.info(

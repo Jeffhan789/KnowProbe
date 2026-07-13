@@ -6,7 +6,7 @@ from typing import Any
 
 import streamlit as st
 
-from knowprobe.dashboard.components import render_bar_chart, render_radar_chart, render_data_table
+from knowprobe.dashboard.components import render_bar_chart, render_data_table, render_radar_chart
 from knowprobe.dashboard.utils import api_get, api_post, ensure_session_state, format_score
 from knowprobe.utils.logging import get_logger
 
@@ -16,9 +16,7 @@ logger = get_logger("dashboard.pages.evaluation")
 def render() -> None:
     """Render the Evaluation page."""
     st.header("Evaluation")
-    st.markdown(
-        "Evaluate generated questions using BLEU-4, ROUGE, BERTScore, and LLM Judge."
-    )
+    st.markdown("Evaluate generated questions using BLEU-4, ROUGE, BERTScore, and LLM Judge.")
 
     # Load available metrics
     with st.spinner("Loading metrics..."):
@@ -134,7 +132,7 @@ def _render_results(results: list[dict[str, Any]]) -> None:
 
     # Score cards
     cols = st.columns(len(scores))
-    for col, score in zip(cols, scores):
+    for col, score in zip(cols, scores, strict=False):
         col.metric(
             label=score["metric_name"].upper(),
             value=format_score(score["score"], score["metric_name"]),
@@ -160,6 +158,8 @@ def _render_results(results: list[dict[str, Any]]) -> None:
         categories = [s["metric_name"].upper() for s in scores]
         values = [s["score"] for s in scores]
         # Normalize LLM judge to 0-1 scale for radar
-        normalized = [v / 5.0 if cat == "LLM JUDGE" else v for v, cat in zip(values, categories)]
+        normalized = [
+            v / 5.0 if cat == "LLM JUDGE" else v for v, cat in zip(values, categories, strict=False)
+        ]
         fig_radar = render_radar_chart(categories, normalized, title="Score Profile")
         st.plotly_chart(fig_radar, use_container_width=True)

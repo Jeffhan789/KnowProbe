@@ -13,20 +13,21 @@ from __future__ import annotations
 import re
 from abc import ABC, abstractmethod
 from dataclasses import dataclass, field
-from typing import Any
+from typing import TYPE_CHECKING, Any
 
 import numpy as np
-from sentence_transformers import SentenceTransformer
+
+if TYPE_CHECKING:
+    from sentence_transformers import SentenceTransformer
 
 from knowprobe.core.models import (
     EvaluationResult,
     GeneratedQuestion,
-    KnowledgeInput,
     QuestionType,
 )
 from knowprobe.utils.logging import get_logger
 
-from .metrics import GrammarMetric, MetricRegistry, MetricScore
+from .metrics import GrammarMetric, MetricRegistry
 
 logger = get_logger(__name__)
 
@@ -34,6 +35,7 @@ logger = get_logger(__name__)
 # ---------------------------------------------------------------------------
 # Quality dimension scores
 # ---------------------------------------------------------------------------
+
 
 @dataclass(frozen=True)
 class QualityDimension:
@@ -75,6 +77,7 @@ class QuestionQualityReport:
 # Dimension evaluators
 # ---------------------------------------------------------------------------
 
+
 class DimensionEvaluator(ABC):
     """Base class for a single quality dimension evaluator."""
 
@@ -115,6 +118,8 @@ class RelevanceEvaluator(DimensionEvaluator):
         """Lazy-load the embedding model."""
         if self._embedding_model is None:
             try:
+                from sentence_transformers import SentenceTransformer
+
                 self._embedding_model = SentenceTransformer(self._model_name)
                 logger.info(
                     "relevance_model_loaded",
@@ -176,9 +181,21 @@ class TypeConsistencyEvaluator(DimensionEvaluator):
 
     # Schema-related keywords
     SCHEMA_KEYWORDS: set[str] = {
-        "type", "class", "property", "relation", "attribute",
-        "schema", "structure", "hierarchy", "category", "domain",
-        "range", "subclass", "superclass", "ontology", "predicate",
+        "type",
+        "class",
+        "property",
+        "relation",
+        "attribute",
+        "schema",
+        "structure",
+        "hierarchy",
+        "category",
+        "domain",
+        "range",
+        "subclass",
+        "superclass",
+        "ontology",
+        "predicate",
     }
 
     # Factual question patterns
@@ -325,9 +342,19 @@ class FluencyEvaluator(DimensionEvaluator):
 
     # Simple heuristic patterns for fluency issues
     FLUENCY_ISSUES: list[tuple[re.Pattern, float, str]] = [
-        (re.compile(r"\b\w+\s+\w+\s+\w+\s+\w+\s+\w+\s+\w+\s+\w+\s+\w+\s+\w+\s+\w+\s+\w+\s+\w+\s+\w+\s+\w+\s+\w+"), 0.3, "excessively_long_sentence"),
+        (
+            re.compile(
+                r"\b\w+\s+\w+\s+\w+\s+\w+\s+\w+\s+\w+\s+\w+\s+\w+\s+\w+\s+\w+\s+\w+\s+\w+\s+\w+\s+\w+\s+\w+"
+            ),
+            0.3,
+            "excessively_long_sentence",
+        ),
         (re.compile(r"\b(the|a|an)\s+\1\b", re.IGNORECASE), 0.4, "repeated_article"),
-        (re.compile(r"\b\w+\b\s*\(\s*\b\w+\b\s*\)\s*\b\w+\b\s*\(\s*\b\w+\b\s*\)"), 0.2, "nested_parens"),
+        (
+            re.compile(r"\b\w+\b\s*\(\s*\b\w+\b\s*\)\s*\b\w+\b\s*\(\s*\b\w+\b\s*\)"),
+            0.2,
+            "nested_parens",
+        ),
         (re.compile(r"[^a-zA-Z0-9\s\u4e00-\u9fff.,;:!?()'\"-]"), 0.2, "special_chars"),
     ]
 
@@ -431,7 +458,11 @@ class StructuralGroundingEvaluator(DimensionEvaluator):
             details=details,
         )
 
-    def _extract_schema_elements(self, data: dict[str, Any], result: set[str]) -> None:
+    def _extract_schema_elements(
+        self,
+        data: dict[str, Any] | list[Any],
+        result: set[str],
+    ) -> None:
         """Recursively extract schema element names from structured data."""
         if isinstance(data, dict):
             for key, value in data.items():
@@ -465,6 +496,7 @@ class StructuralGroundingEvaluator(DimensionEvaluator):
 # ---------------------------------------------------------------------------
 # Main question evaluator
 # ---------------------------------------------------------------------------
+
 
 class QuestionEvaluator:
     """Main evaluator for generated question quality.

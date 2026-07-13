@@ -1,7 +1,5 @@
 """Tests for knowledge parser utility functions."""
 
-import pytest
-
 from knowprobe.parsers.utils import (
     chunk_text,
     clean_triple_content,

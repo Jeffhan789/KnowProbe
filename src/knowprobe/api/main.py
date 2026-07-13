@@ -2,8 +2,8 @@
 
 from __future__ import annotations
 
+from collections.abc import AsyncGenerator
 from contextlib import asynccontextmanager
-from typing import AsyncGenerator
 
 from fastapi import FastAPI
 from fastapi.exceptions import RequestValidationError
@@ -80,9 +80,7 @@ def create_app() -> FastAPI:
 
     # Exception handlers
     @app.exception_handler(RequestValidationError)
-    async def validation_exception_handler(
-        request, exc: RequestValidationError
-    ) -> JSONResponse:
+    async def validation_exception_handler(request, exc: RequestValidationError) -> JSONResponse:
         """Return structured validation errors."""
         from knowprobe.api.schemas import ErrorDetail, ErrorResponse
 

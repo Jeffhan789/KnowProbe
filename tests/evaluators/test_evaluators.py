@@ -3,9 +3,6 @@
 from __future__ import annotations
 
 import json
-import tempfile
-from datetime import datetime
-from pathlib import Path
 
 import numpy as np
 import pytest
@@ -28,11 +25,12 @@ from knowprobe.evaluators import (
     ExperimentRunner,
     MetricRegistry,
     QuestionEvaluator,
+    RAGEvaluationReport,
     RAGEvaluator,
 )
 from knowprobe.evaluators.metrics import (
-    BLEUMetric,
     BERTScoreMetric,
+    BLEUMetric,
     DistinctNMetric,
     GrammarMetric,
     METEORMetric,
@@ -53,12 +51,12 @@ from knowprobe.evaluators.rag_evaluator import (
     RetrievalEvaluator,
     RetrievalMetrics,
 )
-from knowprobe.evaluators.reporter import EvaluationReport, StatisticRow
-
+from knowprobe.evaluators.reporter import EvaluationReport
 
 # ---------------------------------------------------------------------------
 # Fixtures
 # ---------------------------------------------------------------------------
+
 
 @pytest.fixture
 def sample_knowledge() -> KnowledgeInput:
@@ -157,6 +155,7 @@ def sample_rag_result() -> RAGResult:
 # ---------------------------------------------------------------------------
 # Metric tests
 # ---------------------------------------------------------------------------
+
 
 class TestBLEUMetric:
     def test_bleu_computation(self, sample_questions, sample_references):
@@ -278,6 +277,7 @@ class TestMetricRegistry:
 # Question evaluator tests
 # ---------------------------------------------------------------------------
 
+
 class TestQuestionEvaluator:
     def test_evaluate_single(self, sample_questions):
         evaluator = QuestionEvaluator()
@@ -368,6 +368,7 @@ class TestStructuralGroundingEvaluator:
 # ---------------------------------------------------------------------------
 # RAG evaluator tests
 # ---------------------------------------------------------------------------
+
 
 class TestRetrievalEvaluator:
     def test_precision_at_k(self, sample_rag_query, sample_rag_result):
@@ -464,6 +465,7 @@ class TestRAGEvaluator:
 # Experiment runner tests
 # ---------------------------------------------------------------------------
 
+
 class TestExperimentRunner:
     def test_experiment_config(self):
         config = ExperimentConfig(
@@ -534,6 +536,7 @@ class TestExperimentRunner:
 # ---------------------------------------------------------------------------
 # Reporter tests
 # ---------------------------------------------------------------------------
+
 
 class TestEvaluationReporter:
     def test_build_report(self):
@@ -630,6 +633,7 @@ class TestEvaluationReporter:
 # Pipeline tests
 # ---------------------------------------------------------------------------
 
+
 class TestEvaluationPipeline:
     def test_run_pipeline(self, sample_questions, sample_references):
         from knowprobe.evaluators.pipeline import PipelineConfig
@@ -688,6 +692,7 @@ class TestEvaluationPipeline:
 # ---------------------------------------------------------------------------
 # Integration tests
 # ---------------------------------------------------------------------------
+
 
 class TestIntegration:
     def test_end_to_end_evaluation(self, sample_questions, sample_references, tmp_path):
@@ -763,7 +768,8 @@ class TestIntegration:
 
         # Check for model comparison
         model_comps = [
-            c for c in context.comparisons
+            c
+            for c in context.comparisons
             if c.baseline_condition == "llama3.1:8b" or c.comparison_condition == "llama3.1:8b"
         ]
         assert len(model_comps) > 0

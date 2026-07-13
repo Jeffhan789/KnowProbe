@@ -2,6 +2,8 @@
 
 from __future__ import annotations
 
+from types import ModuleType
+
 import streamlit as st
 
 from knowprobe.core.config import get_settings
@@ -25,7 +27,7 @@ st.set_page_config(
 # ---------------------------------------------------------------------------
 # Navigation
 # ---------------------------------------------------------------------------
-PAGE_MAP: dict[str, object] = {
+PAGE_MAP: dict[str, ModuleType] = {
     "Question Generation": generation,
     "Evaluation": evaluation,
     "Experiments": experiments,

@@ -7,17 +7,11 @@ from typing import Any
 # ─────────────────────────── Regex Patterns ───────────────────────────
 
 # Triple patterns: (Subject, Predicate, Object) or Subject|Predicate|Object
-TRIPLE_PATTERN = re.compile(
-    r"\((?P<s>[^,|]+?)\s*,\s*(?P<p>[^,|]+?)\s*,\s*(?P<o>[^,|]+?)\s*\)"
-)
-TRIPLE_PIPE_PATTERN = re.compile(
-    r"(?P<s>[^|]+?)\s*\|\s*(?P<p>[^|]+?)\s*\|\s*(?P<o>[^|]+)"
-)
+TRIPLE_PATTERN = re.compile(r"\((?P<s>[^,|]+?)\s*,\s*(?P<p>[^,|]+?)\s*,\s*(?P<o>[^,|]+?)\s*\)")
+TRIPLE_PIPE_PATTERN = re.compile(r"(?P<s>[^|]+?)\s*\|\s*(?P<p>[^|]+?)\s*\|\s*(?P<o>[^|]+)")
 
 # Schema pattern: Type:Property -> Value
-SCHEMA_PATTERN = re.compile(
-    r"(?P<entity_type>\w+)\s*:\s*(?P<property>\w+)\s*->\s*(?P<value>.+)"
-)
+SCHEMA_PATTERN = re.compile(r"(?P<entity_type>\w+)\s*:\s*(?P<property>\w+)\s*->\s*(?P<value>.+)")
 
 # Entity pattern: EntityName [Type] {properties}
 ENTITY_PATTERN = re.compile(
@@ -122,11 +116,13 @@ def extract_schema_entries(content: str) -> list[dict[str, str]]:
             continue
         match = SCHEMA_PATTERN.match(line)
         if match:
-            entries.append({
-                "entity_type": match.group("entity_type").strip(),
-                "property": match.group("property").strip(),
-                "value": match.group("value").strip(),
-            })
+            entries.append(
+                {
+                    "entity_type": match.group("entity_type").strip(),
+                    "property": match.group("property").strip(),
+                    "value": match.group("value").strip(),
+                }
+            )
     return entries
 
 
@@ -205,8 +201,7 @@ def sanitize_metadata(metadata: dict[str, Any]) -> dict[str, Any]:
             clean[key] = value
         elif isinstance(value, (list, tuple)):
             clean[key] = [
-                v if isinstance(v, (str, int, float, bool, type(None))) else str(v)
-                for v in value
+                v if isinstance(v, (str, int, float, bool, type(None))) else str(v) for v in value
             ]
         elif isinstance(value, dict):
             clean[key] = sanitize_metadata(value)
@@ -217,4 +212,8 @@ def sanitize_metadata(metadata: dict[str, Any]) -> dict[str, Any]:
 
 def is_empty_content(content: str) -> bool:
     """Check if content is effectively empty."""
-    return not content or not content.strip() or content.strip().lower() in {"null", "none", "nan", "-"}
+    return (
+        not content
+        or not content.strip()
+        or content.strip().lower() in {"null", "none", "nan", "-"}
+    )

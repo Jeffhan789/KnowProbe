@@ -6,7 +6,9 @@ from typing import Any
 
 import streamlit as st
 
-from knowprobe.dashboard.components import render_bar_chart, render_comparison_heatmap, render_data_table
+from knowprobe.dashboard.components import (
+    render_bar_chart,
+)
 from knowprobe.dashboard.utils import api_post, ensure_session_state
 from knowprobe.utils.logging import get_logger
 
@@ -61,7 +63,7 @@ def render() -> None:
         eval_btn = st.button("Evaluate RAG Result", use_container_width=True)
 
     if query_btn:
-        _handle_rag_query(docs_input, query_text, top_k)
+        _handle_rag_query(docs_input, query_text, expected_answer, top_k)
 
     if eval_btn:
         _handle_rag_evaluate(query_text)
@@ -110,7 +112,12 @@ def _parse_documents(text: str) -> list[dict[str, Any]]:
     return documents
 
 
-def _handle_rag_query(docs_input: str, query_text: str, top_k: int) -> None:
+def _handle_rag_query(
+    docs_input: str,
+    query_text: str,
+    expected_answer: str,
+    top_k: int,
+) -> None:
     """Handle RAG query execution."""
     documents = _parse_documents(docs_input)
     if not documents:
@@ -121,7 +128,7 @@ def _handle_rag_query(docs_input: str, query_text: str, top_k: int) -> None:
         "query": {
             "query_id": "rag-query-001",
             "query_text": query_text,
-            "expected_answer": "",
+            "expected_answer": expected_answer,
             "relevant_doc_ids": [],
         },
         "documents": documents,
@@ -192,20 +199,21 @@ def _handle_rag_evaluate(query_text: str) -> None:
 
         # Score cards
         cols = st.columns(len(scores))
-        for col, (metric, score) in zip(cols, scores.items()):
+        for col, (metric, score) in zip(cols, scores.items(), strict=False):
             col.metric(label=metric.replace("_", " ").title(), value=f"{score:.2f}")
 
         # Bar chart
         fig = render_bar_chart(scores, title="RAG Quality Scores")
         st.plotly_chart(fig, use_container_width=True)
     else:
-        st.error(f"Evaluation failed: {result.get('error', 'Unknown error')}")
+        error = result.get("error", "Unknown error") if result else "API unavailable"
+        st.error(f"Evaluation failed: {error}")
 
 
 def _render_rag_results(results: list[dict[str, Any]]) -> None:
     """Render RAG result history."""
     for idx, r in enumerate(results):
-        with st.expander(f"Result {idx+1}: {r['query_text'][:50]}..."):
+        with st.expander(f"Result {idx + 1}: {r['query_text'][:50]}..."):
             st.markdown(f"**Query:** {r['query_text']}")
             st.markdown(f"**Retrieved:** {r['retrieved_count']} docs")
             st.markdown(f"**Answer:** {r['generated_answer']}")

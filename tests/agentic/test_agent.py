@@ -1,7 +1,5 @@
 """Tests for Agentic RAG module."""
 
-import pytest
-
 from knowprobe.agentic.agent import ActionType, AgenticRAGState, AgentStep
 
 
@@ -24,7 +22,9 @@ class TestAgenticRAGState:
         assert state.is_done
 
     def test_to_context_string(self) -> None:
-        state = AgenticRAGState(original_query="Who invented telephone?", current_query="Who invented telephone?")
+        state = AgenticRAGState(
+            original_query="Who invented telephone?", current_query="Who invented telephone?"
+        )
         ctx = state.to_context_string()
         assert "Original Query" in ctx
         assert "Who invented telephone?" in ctx

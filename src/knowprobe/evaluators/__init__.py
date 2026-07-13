@@ -36,8 +36,8 @@ from knowprobe.evaluators.experiment_runner import (
 from knowprobe.evaluators.metrics import (
     AggregateScore,
     BaseMetric,
-    BLEUMetric,
     BERTScoreMetric,
+    BLEUMetric,
     DistinctNMetric,
     GrammarMetric,
     METEORMetric,
@@ -54,9 +54,9 @@ from knowprobe.evaluators.pipeline import (
 from knowprobe.evaluators.question_evaluator import (
     AnswerabilityEvaluator,
     FluencyEvaluator,
+    QualityDimension,
     QuestionEvaluator,
     QuestionQualityReport,
-    QualityDimension,
     RelevanceEvaluator,
     StructuralGroundingEvaluator,
     TypeConsistencyEvaluator,

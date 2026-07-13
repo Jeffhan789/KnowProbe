@@ -34,8 +34,12 @@ class KGNode(BaseModel):
 
     id: str = Field(description="Unique node identifier (e.g., 'Albert_Einstein_Person')")
     label: str = Field(description="Human-readable entity label")
-    type: str = Field(default="Entity", description="Entity type: Person, Organization, Concept, etc.")
-    properties: dict[str, Any] = Field(default_factory=dict, description="Additional entity properties")
+    type: str = Field(
+        default="Entity", description="Entity type: Person, Organization, Concept, etc."
+    )
+    properties: dict[str, Any] = Field(
+        default_factory=dict, description="Additional entity properties"
+    )
 
     def __hash__(self) -> int:
         return hash(self.id)
@@ -176,7 +180,7 @@ class KnowledgeGraph(BaseModel):
 
     def degree_distribution(self) -> dict[str, int]:
         """返回每个节点的度。"""
-        degrees: dict[str, int] = {nid: 0 for nid in self.nodes}
+        degrees: dict[str, int] = dict.fromkeys(self.nodes, 0)
         for edge in self.edges:
             degrees[edge.source] = degrees.get(edge.source, 0) + 1
             degrees[edge.target] = degrees.get(edge.target, 0) + 1
@@ -185,9 +189,7 @@ class KnowledgeGraph(BaseModel):
     # ------------------------------------------------------------------
     # 路径与遍历（多跳推理的核心）
     # ------------------------------------------------------------------
-    def find_paths(
-        self, start_id: str, end_id: str, max_depth: int = 3
-    ) -> list[list[KGEdge]]:
+    def find_paths(self, start_id: str, end_id: str, max_depth: int = 3) -> list[list[KGEdge]]:
         """找到两个节点之间的所有路径（深度优先搜索）。
 
         这是多跳推理的核心算法。

@@ -6,19 +6,16 @@ with support for strategy-specific and question-type-specific overrides.
 
 from __future__ import annotations
 
-import re
 from pathlib import Path
 from typing import Any
 
-import yaml
 from jinja2 import (
     Environment,
     FileSystemLoader,
     TemplateError,
-    TemplateNotFound,
 )
 from jinja2.sandbox import SandboxedEnvironment
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, ConfigDict
 
 from knowprobe.core.models import PromptStrategy, QuestionType
 from knowprobe.utils.logging import get_logger
@@ -46,15 +43,14 @@ class PromptTemplate(BaseModel):
         description: Human-readable description of the template.
     """
 
+    model_config = ConfigDict(arbitrary_types_allowed=True)
+
     name: str
     strategy: PromptStrategy
     question_type: QuestionType
     source_path: Path | None = None
     content: str = ""
     description: str = ""
-
-    class Config:
-        arbitrary_types_allowed = True
 
     def _get_template(self, env: Environment) -> Any:
         """Compile the Jinja2 template from content or file."""
@@ -89,9 +85,7 @@ class PromptTemplate(BaseModel):
                 template_name=self.name,
                 error=str(exc),
             )
-            raise TemplateRenderError(
-                f"Failed to render template '{self.name}': {exc}"
-            ) from exc
+            raise TemplateRenderError(f"Failed to render template '{self.name}': {exc}") from exc
 
 
 class TemplateRegistry:

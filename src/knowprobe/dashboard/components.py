@@ -6,7 +6,6 @@ from datetime import datetime
 
 import streamlit as st
 from plotly import graph_objects as go
-from plotly.subplots import make_subplots
 
 from knowprobe.core.config import get_settings
 from knowprobe.utils.logging import get_logger
@@ -22,8 +21,7 @@ def render_header() -> None:
     """Render the dashboard header with title and description."""
     st.title(f"{settings.dashboard.page_icon} {settings.dashboard.title}")
     st.markdown(
-        "An interactive platform for knowledge-grounded question generation "
-        "and RAG evaluation."
+        "An interactive platform for knowledge-grounded question generation and RAG evaluation."
     )
     st.markdown("---")
 
@@ -113,7 +111,7 @@ def render_grouped_bar_chart(
         Plotly Figure object.
     """
     fig = go.Figure()
-    inner_keys = set()
+    inner_keys: set[str] = set()
     for inner in data.values():
         inner_keys.update(inner.keys())
     for inner_key in sorted(inner_keys):

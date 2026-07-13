@@ -1,7 +1,6 @@
 """Vector store implementations for RAG retrieval."""
 
 from abc import ABC, abstractmethod
-from typing import Any
 
 import numpy as np
 from numpy.typing import NDArray
@@ -18,16 +17,12 @@ class VectorStore(ABC):
     """Abstract interface for vector storage and similarity search."""
 
     @abstractmethod
-    def add_documents(
-        self, chunks: list[RAGChunk], embeddings: FloatArray
-    ) -> None:
+    def add_documents(self, chunks: list[RAGChunk], embeddings: FloatArray) -> None:
         """Add document chunks with their embeddings to the store."""
         ...
 
     @abstractmethod
-    def search(
-        self, query_embedding: FloatArray, top_k: int = 5
-    ) -> list[RetrievalResult]:
+    def search(self, query_embedding: FloatArray, top_k: int = 5) -> list[RetrievalResult]:
         """Search for the top-k most similar chunks."""
         ...
 
@@ -52,9 +47,7 @@ class InMemoryVectorStore(VectorStore):
         self._dimension: int | None = None
         logger.info("vector_store.init", type="in_memory")
 
-    def add_documents(
-        self, chunks: list[RAGChunk], embeddings: FloatArray
-    ) -> None:
+    def add_documents(self, chunks: list[RAGChunk], embeddings: FloatArray) -> None:
         if len(chunks) != embeddings.shape[0]:
             raise ValueError(
                 f"Number of chunks ({len(chunks)}) must match "
@@ -84,9 +77,7 @@ class InMemoryVectorStore(VectorStore):
             total_docs=self.num_documents,
         )
 
-    def search(
-        self, query_embedding: FloatArray, top_k: int = 5
-    ) -> list[RetrievalResult]:
+    def search(self, query_embedding: FloatArray, top_k: int = 5) -> list[RetrievalResult]:
         if self._embeddings is None or self.num_documents == 0:
             logger.warning("vector_store.empty_search")
             return []

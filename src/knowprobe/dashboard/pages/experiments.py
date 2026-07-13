@@ -2,13 +2,17 @@
 
 from __future__ import annotations
 
-from typing import Any
-
 import streamlit as st
 
 from knowprobe.core.models import PromptStrategy, QuestionType
 from knowprobe.dashboard.components import render_data_table, render_grouped_bar_chart
-from knowprobe.dashboard.utils import api_get, api_post, ensure_session_state, format_strategy_label, format_question_type_label
+from knowprobe.dashboard.utils import (
+    api_get,
+    api_post,
+    ensure_session_state,
+    format_question_type_label,
+    format_strategy_label,
+)
 from knowprobe.utils.logging import get_logger
 
 logger = get_logger("dashboard.pages.experiments")
@@ -61,7 +65,11 @@ def _render_create_tab() -> None:
         "Prompt Strategies",
         options=list(PromptStrategy),
         format_func=format_strategy_label,
-        default=[PromptStrategy.ZERO_SHOT, PromptStrategy.FEW_SHOT, PromptStrategy.CHAIN_OF_THOUGHT],
+        default=[
+            PromptStrategy.ZERO_SHOT,
+            PromptStrategy.FEW_SHOT,
+            PromptStrategy.CHAIN_OF_THOUGHT,
+        ],
         key="exp_create_strategies",
     )
 
@@ -105,7 +113,8 @@ def _render_create_tab() -> None:
             ensure_session_state("exp_counter", 1)
             st.session_state["exp_counter"] += 1
         else:
-            st.error(f"Failed: {result.get('error', 'Unknown error')}")
+            error = result.get("error", "Unknown error") if result else "API unavailable"
+            st.error(f"Failed: {error}")
 
 
 def _render_list_tab() -> None:
@@ -212,8 +221,11 @@ def _handle_run_experiment(experiment_id: str) -> None:
 
     if result and result.get("success") and result.get("data"):
         data = result["data"]
-        st.success(f"Experiment completed! {data.get('summary', {}).get('total_questions', 0)} questions generated.")
+        st.success(
+            f"Experiment completed! {data.get('summary', {}).get('total_questions', 0)} questions generated."
+        )
         ensure_session_state("experiment_results", [])
         st.session_state["experiment_results"].append(data)
     else:
-        st.error(f"Run failed: {result.get('error', 'Unknown error')}")
+        error = result.get("error", "Unknown error") if result else "API unavailable"
+        st.error(f"Run failed: {error}")

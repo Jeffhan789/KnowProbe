@@ -32,6 +32,7 @@ transformers_logging.set_verbosity_error()
 # Data structures
 # ---------------------------------------------------------------------------
 
+
 @dataclass(frozen=True)
 class MetricScore:
     """Score returned by a single metric."""
@@ -66,6 +67,7 @@ class AggregateScore:
 # ---------------------------------------------------------------------------
 # Base metric
 # ---------------------------------------------------------------------------
+
 
 class BaseMetric(ABC):
     """Abstract base class for all evaluation metrics."""
@@ -111,6 +113,7 @@ class BaseMetric(ABC):
 # BLEU metric
 # ---------------------------------------------------------------------------
 
+
 class BLEUMetric(BaseMetric):
     """BLEU metric with configurable max n-gram order (default 4)."""
 
@@ -121,6 +124,7 @@ class BLEUMetric(BaseMetric):
         self.smooth = smooth
         try:
             import sacrebleu
+
             self._sacrebleu = sacrebleu
             self._use_sacrebleu = True
             logger.info("bleu_using_sacrebleu", max_order=max_order)
@@ -163,12 +167,11 @@ class BLEUMetric(BaseMetric):
                 ref_lists[i].append(sample_refs[i] if i < len(sample_refs) else "")
 
         # Corpus-level BLEU
-        bleu = self._sacrebleu.corpus_bleu(
-            predictions,
-            ref_lists,
+        metric = self._sacrebleu.metrics.BLEU(
             smooth_method="exp" if self.smooth else "none",
-            max_order=self.max_order,
+            max_ngram_order=self.max_order,
         )
+        bleu = metric.corpus_score(predictions, ref_lists)
         score = bleu.score / 100.0  # sacrebleu returns 0-100
         details = {
             "bleu_score_100": bleu.score,
@@ -186,19 +189,22 @@ class BLEUMetric(BaseMetric):
     ) -> list[MetricScore]:
         """Naive implementation when sacrebleu is unavailable."""
         scores: list[float] = []
-        for pred, refs in zip(predictions, references):
+        for pred, refs in zip(predictions, references, strict=False):
             pred_norm = self._normalize_text(pred)
             ref_norms = [self._normalize_text(r) for r in refs]
             score = self._bleu_naive_single(pred_norm, ref_norms)
             scores.append(score)
 
         avg_score = float(np.mean(scores)) if scores else 0.0
-        return [MetricScore(name=f"bleu-{self.max_order}", value=avg_score, details={"num_samples": len(scores)})]
+        return [
+            MetricScore(
+                name=f"bleu-{self.max_order}", value=avg_score, details={"num_samples": len(scores)}
+            )
+        ]
 
     def _bleu_naive_single(self, prediction: str, references: list[str]) -> float:
         """Compute BLEU for a single prediction against multiple references."""
         best_bp = 0.0
-        best_precisions = []
 
         for ref in references:
             precisions = []
@@ -222,11 +228,12 @@ class BLEUMetric(BaseMetric):
             else:
                 bp = np.exp(1 - ref_len / pred_len) if ref_len > 0 else 0.0
 
-            geo_mean = np.exp(np.mean([np.log(max(p, 1e-10)) for p in precisions])) if precisions else 0.0
+            geo_mean = (
+                np.exp(np.mean([np.log(max(p, 1e-10)) for p in precisions])) if precisions else 0.0
+            )
             bleu = bp * geo_mean
             if bleu > best_bp:
                 best_bp = bleu
-                best_precisions = precisions
 
         return best_bp
 
@@ -234,6 +241,7 @@ class BLEUMetric(BaseMetric):
 # ---------------------------------------------------------------------------
 # ROUGE metric
 # ---------------------------------------------------------------------------
+
 
 class ROUGEMetric(BaseMetric):
     """ROUGE-L (and optionally ROUGE-1/2) metric for text overlap."""
@@ -245,6 +253,7 @@ class ROUGEMetric(BaseMetric):
         self.rouge_types = rouge_types or ["rouge1", "rouge2", "rougeL"]
         try:
             from rouge_score import rouge_scorer
+
             self._scorer = rouge_scorer.RougeScorer(self.rouge_types, use_stemmer=use_stemmer)
             self._use_lib = True
             logger.info("rouge_using_rouge_score_lib", types=self.rouge_types)
@@ -272,9 +281,9 @@ class ROUGEMetric(BaseMetric):
     ) -> list[MetricScore]:
         scores: dict[str, list[float]] = {t: [] for t in self.rouge_types}
 
-        for pred, refs in zip(predictions, references):
+        for pred, refs in zip(predictions, references, strict=False):
             # Use the first reference if multiple are provided
-            ref = refs[0] if isinstance(refs, list) else refs
+            ref = refs if isinstance(refs, str) else str(refs[0])
             result = self._scorer.score(ref, pred)
             for rouge_type in self.rouge_types:
                 scores[rouge_type].append(result[rouge_type].fmeasure)
@@ -302,8 +311,8 @@ class ROUGEMetric(BaseMetric):
     ) -> list[MetricScore]:
         """Naive LCS-based ROUGE-L implementation."""
         scores: list[float] = []
-        for pred, refs in zip(predictions, references):
-            ref = refs[0] if isinstance(refs, list) else refs
+        for pred, refs in zip(predictions, references, strict=False):
+            ref = refs if isinstance(refs, str) else str(refs[0])
             pred_toks = self._normalize_text(pred).split()
             ref_toks = self._normalize_text(ref).split()
             lcs_len = self._lcs_length(pred_toks, ref_toks)
@@ -346,6 +355,7 @@ class ROUGEMetric(BaseMetric):
 # METEOR metric
 # ---------------------------------------------------------------------------
 
+
 class METEORMetric(BaseMetric):
     """METEOR metric with synonym and stem matching."""
 
@@ -358,6 +368,7 @@ class METEORMetric(BaseMetric):
         try:
             import nltk
             from nltk.corpus import wordnet
+
             self._nltk = nltk
             self._wordnet = wordnet
             # Ensure wordnet is available
@@ -382,8 +393,8 @@ class METEORMetric(BaseMetric):
             return []
 
         scores: list[float] = []
-        for pred, refs in zip(predictions, references):
-            ref = refs[0] if isinstance(refs, list) else refs
+        for pred, refs in zip(predictions, references, strict=False):
+            ref = refs if isinstance(refs, str) else str(refs[0])
             score = self._meteor_single(pred, ref)
             scores.append(score)
 
@@ -431,7 +442,9 @@ class METEORMetric(BaseMetric):
         f_mean = (precision * recall) / (self.alpha * precision + (1 - self.alpha) * recall)
         # Fragmentation penalty
         pred_chunks = self._count_chunks(pred_tokens, ref_tokens)
-        penalty = self.gamma * ((pred_chunks / total_matches) ** self.beta) if total_matches > 0 else 0.0
+        penalty = (
+            self.gamma * ((pred_chunks / total_matches) ** self.beta) if total_matches > 0 else 0.0
+        )
 
         return f_mean * (1 - penalty)
 
@@ -487,6 +500,7 @@ class METEORMetric(BaseMetric):
 # BERTScore metric
 # ---------------------------------------------------------------------------
 
+
 class BERTScoreMetric(BaseMetric):
     """BERTScore for semantic similarity using contextual embeddings."""
 
@@ -512,11 +526,14 @@ class BERTScoreMetric(BaseMetric):
         if self._bertscore is None:
             try:
                 from bert_score import score as bert_score_fn
+
                 self._bertscore = bert_score_fn
                 logger.info("bert_score_loaded", model=self.model_type)
             except ImportError as e:
                 logger.error("bert_score_import_failed", error=str(e))
-                raise RuntimeError("bert-score library is required. Install with: pip install bert-score") from e
+                raise RuntimeError(
+                    "bert-score library is required. Install with: pip install bert-score"
+                ) from e
         return self._bertscore
 
     def compute(
@@ -575,6 +592,7 @@ class BERTScoreMetric(BaseMetric):
 # Self-BLEU metric (diversity)
 # ---------------------------------------------------------------------------
 
+
 class SelfBLEUMetric(BaseMetric):
     """Self-BLEU measures diversity within a set of generated texts.
 
@@ -599,7 +617,9 @@ class SelfBLEUMetric(BaseMetric):
         as references. Average these scores.
         """
         if len(predictions) < 2:
-            return [MetricScore(name="self_bleu", value=0.0, details={"reason": "insufficient_samples"})]
+            return [
+                MetricScore(name="self_bleu", value=0.0, details={"reason": "insufficient_samples"})
+            ]
 
         normalized = [self._normalize_text(p) for p in predictions]
         scores: list[float] = []
@@ -639,7 +659,9 @@ class SelfBLEUMetric(BaseMetric):
                 matches = sum((pred_ngrams & ref_ngrams).values())
                 precisions.append(matches / sum(pred_ngrams.values()))
 
-            geo_mean = np.exp(np.mean([np.log(max(p, 1e-10)) for p in precisions])) if precisions else 0.0
+            geo_mean = (
+                np.exp(np.mean([np.log(max(p, 1e-10)) for p in precisions])) if precisions else 0.0
+            )
             if geo_mean > best:
                 best = geo_mean
         return best
@@ -648,6 +670,7 @@ class SelfBLEUMetric(BaseMetric):
 # ---------------------------------------------------------------------------
 # Distinct-N metric (lexical diversity)
 # ---------------------------------------------------------------------------
+
 
 class DistinctNMetric(BaseMetric):
     """Distinct-N measures the ratio of unique n-grams to total n-grams."""
@@ -692,6 +715,7 @@ class DistinctNMetric(BaseMetric):
 # ---------------------------------------------------------------------------
 # Grammar correctness metric (heuristic)
 # ---------------------------------------------------------------------------
+
 
 class GrammarMetric(BaseMetric):
     """Heuristic grammar correctness score.
@@ -761,6 +785,7 @@ class GrammarMetric(BaseMetric):
 # ---------------------------------------------------------------------------
 # Metric registry
 # ---------------------------------------------------------------------------
+
 
 class MetricRegistry:
     """Registry for all available metrics."""

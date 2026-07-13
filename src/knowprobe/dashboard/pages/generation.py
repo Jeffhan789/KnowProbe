@@ -5,8 +5,7 @@ from __future__ import annotations
 import streamlit as st
 
 from knowprobe.core.config import get_settings
-from knowprobe.core.models import KnowledgeInput, PromptStrategy, QuestionType
-from knowprobe.dashboard.components import info_card, metric_card, render_bar_chart
+from knowprobe.core.models import PromptStrategy, QuestionType
 from knowprobe.dashboard.utils import (
     api_get,
     api_post,
@@ -134,7 +133,7 @@ def render() -> None:
     if st.session_state["gen_history"]:
         st.markdown("---")
         st.subheader("Generation History")
-        for idx, item in enumerate(reversed(st.session_state["gen_history"])):
+        for _idx, item in enumerate(reversed(st.session_state["gen_history"])):
             with st.container(border=True):
                 st.markdown(f"**{item['question_text']}**")
                 cols = st.columns(4)

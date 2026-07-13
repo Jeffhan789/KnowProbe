@@ -7,13 +7,10 @@ from typing import Any
 from knowprobe.core.models import (
     RAGBenchmarkResult,
     RAGDocument,
-    RAGMetrics,
     RAGPipelineResult,
     RAGQuery,
-    RetrievalResult,
 )
-from knowprobe.rag.document_processor import DocumentProcessor, FixedSizeChunking
-from knowprobe.rag.embeddings import EmbeddingProvider, SentenceTransformerEmbeddings
+from knowprobe.rag.embeddings import SentenceTransformerEmbeddings
 from knowprobe.rag.rag_evaluator import RAGEvaluator
 from knowprobe.rag.rag_generator import RAGGenerator
 from knowprobe.rag.retriever import BaseRetriever, DenseRetriever, HybridRetriever
@@ -87,18 +84,14 @@ class RAGPipeline:
             )
             raise
 
-    def run_and_evaluate(
-        self, query: RAGQuery, top_k: int = 5
-    ) -> RAGPipelineResult:
+    def run_and_evaluate(self, query: RAGQuery, top_k: int = 5) -> RAGPipelineResult:
         """Run pipeline and evaluate the result."""
         result = self.run(query, top_k=top_k)
         metrics = self.evaluator.evaluate(result, query=query)
         result.metrics = metrics
         return result
 
-    def run_batch(
-        self, queries: list[RAGQuery], top_k: int = 5
-    ) -> list[RAGPipelineResult]:
+    def run_batch(self, queries: list[RAGQuery], top_k: int = 5) -> list[RAGPipelineResult]:
         """Run the pipeline on a batch of queries."""
         results: list[RAGPipelineResult] = []
         for query in queries:
@@ -161,13 +154,13 @@ class PipelineBuilder:
         )
         chunk_size = rag_config.get("chunk_size", 512)
         chunk_overlap = rag_config.get("chunk_overlap", 50)
-        top_k = rag_config.get("top_k", 5)
         retriever_type = rag_config.get("retriever", "dense")
 
         # Create embedding provider
         embedding_provider = SentenceTransformerEmbeddings(model_name=embedding_model)
 
         # Create retriever
+        retriever: BaseRetriever
         if retriever_type == "hybrid":
             retriever = HybridRetriever(
                 embedding_provider=embedding_provider,

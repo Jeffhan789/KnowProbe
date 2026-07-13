@@ -19,7 +19,7 @@ from __future__ import annotations
 from typing import Any
 
 from knowprobe.core.models import RAGChunk, RetrievalResult
-from knowprobe.kg.graph import KGNode, KnowledgeGraph
+from knowprobe.kg.graph import KnowledgeGraph
 from knowprobe.rag.retriever import BaseRetriever, DenseRetriever
 from knowprobe.utils.logging import get_logger
 
@@ -60,7 +60,11 @@ class GraphRetriever(BaseRetriever):
                 self.graph.add_node(node)
             for edge in sub_graph.edges:
                 self.graph.add_edge(edge)
-        logger.info("retriever.graph_indexed", total_nodes=self.graph.num_nodes, total_edges=self.graph.num_edges)
+        logger.info(
+            "retriever.graph_indexed",
+            total_nodes=self.graph.num_nodes,
+            total_edges=self.graph.num_edges,
+        )
 
     def retrieve(self, query_text: str, top_k: int = 5) -> list[RetrievalResult]:
         """子类必须实现具体的检索逻辑。"""
@@ -81,7 +85,9 @@ class GraphRetriever(BaseRetriever):
                 found.append(node.id)
         return found
 
-    def _chunks_to_results(self, chunks: list[RAGChunk], scores: list[float] | None = None) -> list[RetrievalResult]:
+    def _chunks_to_results(
+        self, chunks: list[RAGChunk], scores: list[float] | None = None
+    ) -> list[RetrievalResult]:
         """将文本片段包装为 RetrievalResult。"""
         results: list[RetrievalResult] = []
         for i, chunk in enumerate(chunks):
@@ -129,7 +135,9 @@ class EgoGraphRetriever(GraphRetriever):
             if nid in self.chunk_map:
                 chunks.append(self.chunk_map[nid])
             # 如果节点自身存储了文本，也可以直接使用
-            elif nid in self.graph.nodes and (content := self.graph.nodes[nid].properties.get("content")):
+            elif nid in self.graph.nodes and (
+                content := self.graph.nodes[nid].properties.get("content")
+            ):
                 chunks.append(RAGChunk(chunk_id=f"kg_{nid}", doc_id=nid, content=str(content)))
 
         logger.info(
@@ -192,7 +200,9 @@ class PathRetriever(GraphRetriever):
         for nid in path_nodes:
             if nid in self.chunk_map:
                 chunks.append(self.chunk_map[nid])
-            elif nid in self.graph.nodes and (content := self.graph.nodes[nid].properties.get("content")):
+            elif nid in self.graph.nodes and (
+                content := self.graph.nodes[nid].properties.get("content")
+            ):
                 chunks.append(RAGChunk(chunk_id=f"kg_path_{nid}", doc_id=nid, content=str(content)))
 
         logger.info(

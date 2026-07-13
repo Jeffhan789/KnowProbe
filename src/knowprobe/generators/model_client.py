@@ -172,9 +172,7 @@ class OllamaClient(BaseModelClient):
             usage={
                 "prompt_tokens": data.get("prompt_eval_count", 0),
                 "completion_tokens": data.get("eval_count", 0),
-                "total_tokens": (
-                    data.get("prompt_eval_count", 0) + data.get("eval_count", 0)
-                ),
+                "total_tokens": (data.get("prompt_eval_count", 0) + data.get("eval_count", 0)),
             },
             latency_ms=latency,
             model=self.model,
@@ -309,9 +307,7 @@ class TransformersClient(BaseModelClient):
             raise RuntimeError("TransformersClient not initialized. Call initialize() first.")
 
         loop = asyncio.get_running_loop()
-        return await loop.run_in_executor(
-            None, self._generate_sync, prompt, params
-        )
+        return await loop.run_in_executor(None, self._generate_sync, prompt, params)
 
     async def generate_batch(self, prompts: list[str], **params: Any) -> list[ModelResponse]:
         """Process prompts sequentially; true batching would need padding logic."""
@@ -352,7 +348,7 @@ class TransformersClient(BaseModelClient):
         latency = (time.monotonic() - start) * 1000
 
         # Decode only the new tokens
-        new_tokens = outputs[0][inputs["input_ids"].shape[1]:]
+        new_tokens = outputs[0][inputs["input_ids"].shape[1] :]
         text = self._tokenizer.decode(new_tokens, skip_special_tokens=True).strip()
 
         return ModelResponse(
@@ -430,9 +426,7 @@ class OpenAICompatibleClient(BaseModelClient):
     @retry(
         stop=stop_after_attempt(3),
         wait=wait_exponential(multiplier=1, min=2, max=10),
-        retry=tenacity.retry_if_exception_type(
-            (httpx.HTTPError, httpx.TimeoutException)
-        ),
+        retry=tenacity.retry_if_exception_type((httpx.HTTPError, httpx.TimeoutException)),
         reraise=True,
     )
     async def generate(self, prompt: str, **params: Any) -> ModelResponse:
@@ -529,9 +523,7 @@ class OpenAICompatibleClient(BaseModelClient):
             ],
             "temperature": params.get("temperature", 0.7),
             "top_p": params.get("top_p", 0.9),
-            "max_tokens": params.get(
-                "max_tokens", params.get("max_length", 256)
-            ),
+            "max_tokens": params.get("max_tokens", params.get("max_length", 256)),
         }
 
 
@@ -586,12 +578,12 @@ class ModelClientFactory:
             )
 
         if provider in (ModelProvider.OPENAI, ModelProvider.DEEPSEEK, ModelProvider.CLAUDE):
-            api_config = settings.models.api.get(provider.value, {})
+            api_config = settings.models.api.get(provider.value)
+            api_key = kwargs.get("api_key") or (api_config.api_key if api_config else "")
+            base_url = kwargs.get("base_url") or (api_config.base_url if api_config else "")
             return OpenAICompatibleClient(
-                api_key=kwargs.get("api_key", api_config.get("api_key", "")),
-                base_url=kwargs.get(
-                    "base_url", api_config.get("base_url", "")
-                ),
+                api_key=api_key,
+                base_url=base_url,
                 model=model_name,
                 timeout=kwargs.get("timeout", 120),
             )

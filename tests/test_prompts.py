@@ -8,42 +8,41 @@ Requires: pytest, pytest-asyncio
 
 from __future__ import annotations
 
-import pytest
 from pathlib import Path
 
+import pytest
+
 from knowprobe.core.models import KnowledgeInput, PromptStrategy, QuestionType
+from knowprobe.prompts.builder import PromptBuilder
+from knowprobe.prompts.engine import PromptStrategyEngine
+from knowprobe.prompts.examples import (
+    DiversityExampleSelector,
+    Example,
+    ExampleBank,
+    ExampleSelectorFactory,
+    RandomExampleSelector,
+    SimilarityExampleSelector,
+)
+from knowprobe.prompts.strategies import (
+    BaseStrategy,
+    CoTStrategy,
+    FewShotStrategy,
+    PromptContext,
+    ReActStrategy,
+    SelfConsistencyStrategy,
+    StrategyError,
+    StrategyFactory,
+    ZeroShotStrategy,
+)
 from knowprobe.prompts.templates import (
     PromptTemplate,
     TemplateRegistry,
     TemplateRenderError,
-    TemplateLoadError,
     load_builtin_templates,
 )
-from knowprobe.prompts.examples import (
-    Example,
-    ExampleBank,
-    ExampleLoadError,
-    RandomExampleSelector,
-    SimilarityExampleSelector,
-    DiversityExampleSelector,
-    ExampleSelectorFactory,
-)
-from knowprobe.prompts.strategies import (
-    BaseStrategy,
-    PromptContext,
-    StrategyFactory,
-    ZeroShotStrategy,
-    FewShotStrategy,
-    CoTStrategy,
-    SelfConsistencyStrategy,
-    ReActStrategy,
-    StrategyError,
-)
-from knowprobe.prompts.builder import PromptBuilder, PromptBuilderError
-from knowprobe.prompts.engine import PromptStrategyEngine, PromptEngineError
-
 
 # ── Fixtures ──
+
 
 @pytest.fixture
 def knowledge_input() -> KnowledgeInput:
@@ -59,26 +58,28 @@ def knowledge_input() -> KnowledgeInput:
 @pytest.fixture
 def example_bank() -> ExampleBank:
     bank = ExampleBank()
-    bank.extend([
-        Example(
-            knowledge="Tokyo is the capital of Japan.",
-            question="What is the capital of Japan?",
-            question_type=QuestionType.FACTUAL,
-            strategy=PromptStrategy.FEW_SHOT,
-        ),
-        Example(
-            knowledge="The Amazon River flows through South America.",
-            question="Through which continent does the Amazon River flow?",
-            question_type=QuestionType.FACTUAL,
-            strategy=PromptStrategy.FEW_SHOT,
-        ),
-        Example(
-            knowledge="Entity: Employee; Attributes: id, name, department; Relations: works_in Department",
-            question="What attributes define an Employee and how do they relate to Department?",
-            question_type=QuestionType.SCHEMA,
-            strategy=PromptStrategy.FEW_SHOT,
-        ),
-    ])
+    bank.extend(
+        [
+            Example(
+                knowledge="Tokyo is the capital of Japan.",
+                question="What is the capital of Japan?",
+                question_type=QuestionType.FACTUAL,
+                strategy=PromptStrategy.FEW_SHOT,
+            ),
+            Example(
+                knowledge="The Amazon River flows through South America.",
+                question="Through which continent does the Amazon River flow?",
+                question_type=QuestionType.FACTUAL,
+                strategy=PromptStrategy.FEW_SHOT,
+            ),
+            Example(
+                knowledge="Entity: Employee; Attributes: id, name, department; Relations: works_in Department",
+                question="What attributes define an Employee and how do they relate to Department?",
+                question_type=QuestionType.SCHEMA,
+                strategy=PromptStrategy.FEW_SHOT,
+            ),
+        ]
+    )
     return bank
 
 
@@ -94,7 +95,8 @@ def template_registry(tmp_path: Path) -> TemplateRegistry:
     )
     (defaults / "few_shot.j2").write_text(
         "{% for ex in examples %}Ex: {{ ex.knowledge }} -> {{ ex.question }}\n{% endfor %}"
-        "Knowledge: {{ knowledge }}\nQuestion:", encoding="utf-8"
+        "Knowledge: {{ knowledge }}\nQuestion:",
+        encoding="utf-8",
     )
     (defaults / "cot.j2").write_text(
         "Think step by step about: {{ knowledge }}\nQuestion:", encoding="utf-8"
@@ -103,6 +105,7 @@ def template_registry(tmp_path: Path) -> TemplateRegistry:
 
 
 # ── Template Tests ──
+
 
 class TestTemplates:
     def test_load_builtin_templates(self) -> None:
@@ -137,8 +140,9 @@ class TestTemplates:
         tmpl = template_registry.get(PromptStrategy.ZERO_SHOT, QuestionType.FACTUAL)
         assert tmpl.strategy == PromptStrategy.ZERO_SHOT
         rendered = template_registry.render(
-            PromptStrategy.ZERO_SHOT, QuestionType.FACTUAL,
-            {"knowledge": "Test", "question_type": "factual"}
+            PromptStrategy.ZERO_SHOT,
+            QuestionType.FACTUAL,
+            {"knowledge": "Test", "question_type": "factual"},
         )
         assert "Test" in rendered
 
@@ -158,6 +162,7 @@ class TestTemplates:
 
 # ── Example Tests ──
 
+
 class TestExamples:
     def test_example_bank_add_and_filter(self, example_bank: ExampleBank) -> None:
         assert len(example_bank) == 3
@@ -166,7 +171,9 @@ class TestExamples:
         schema = example_bank.filter(question_type=QuestionType.SCHEMA)
         assert len(schema) == 1
 
-    def test_example_bank_save_and_load_yaml(self, example_bank: ExampleBank, tmp_path: Path) -> None:
+    def test_example_bank_save_and_load_yaml(
+        self, example_bank: ExampleBank, tmp_path: Path
+    ) -> None:
         path = tmp_path / "examples.yaml"
         example_bank.save_to_yaml(path)
         assert path.exists()
@@ -186,7 +193,11 @@ class TestExamples:
     def test_similarity_selector(self, example_bank: ExampleBank) -> None:
         selector = SimilarityExampleSelector()
         selected = selector.select(
-            example_bank, "Tokyo is the capital.", QuestionType.FACTUAL, PromptStrategy.FEW_SHOT, k=1
+            example_bank,
+            "Tokyo is the capital.",
+            QuestionType.FACTUAL,
+            PromptStrategy.FEW_SHOT,
+            k=1,
         )
         assert len(selected) == 1
         # Should pick the Tokyo example since it shares words
@@ -216,12 +227,11 @@ class TestExamples:
 
 # ── Strategy Tests ──
 
+
 class TestStrategies:
     def test_strategy_factory_list(self) -> None:
         strategies = StrategyFactory.list_strategies()
-        assert set(strategies) == {
-            "zero_shot", "few_shot", "cot", "self_consistency", "react"
-        }
+        assert set(strategies) == {"zero_shot", "few_shot", "cot", "self_consistency", "react"}
 
     def test_strategy_factory_create(self) -> None:
         for ps in PromptStrategy:
@@ -245,7 +255,9 @@ class TestStrategies:
         assert "Paris" in prompts[0]
         assert "Question:" in prompts[0]
 
-    def test_few_shot_build_with_examples(self, knowledge_input: KnowledgeInput, example_bank: ExampleBank) -> None:
+    def test_few_shot_build_with_examples(
+        self, knowledge_input: KnowledgeInput, example_bank: ExampleBank
+    ) -> None:
         strategy = FewShotStrategy(example_bank=example_bank, few_shot_k=2)
         ctx = PromptContext(
             knowledge_input=knowledge_input,
@@ -262,7 +274,9 @@ class TestStrategies:
             knowledge_input=knowledge_input,
             question_type=QuestionType.FACTUAL,
             examples=[
-                Example(knowledge="X is Y.", question="What is X?", question_type=QuestionType.FACTUAL)
+                Example(
+                    knowledge="X is Y.", question="What is X?", question_type=QuestionType.FACTUAL
+                )
             ],
         )
         prompts = strategy.build(ctx)
@@ -304,6 +318,7 @@ class TestStrategies:
         # Create a broken strategy that raises in build_prompts
         class BrokenStrategy(BaseStrategy):
             strategy_type = PromptStrategy.ZERO_SHOT
+
             def build_prompts(self, context: PromptContext) -> list[str]:
                 raise RuntimeError("Simulated failure")
 
@@ -318,6 +333,7 @@ class TestStrategies:
 
 
 # ── Builder Tests ──
+
 
 class TestPromptBuilder:
     def test_builder_single(self, knowledge_input: KnowledgeInput) -> None:
@@ -341,7 +357,9 @@ class TestPromptBuilder:
         assert len(results) == 2
         assert all(len(r) == 1 for r in results)
 
-    def test_builder_with_examples(self, knowledge_input: KnowledgeInput, example_bank: ExampleBank) -> None:
+    def test_builder_with_examples(
+        self, knowledge_input: KnowledgeInput, example_bank: ExampleBank
+    ) -> None:
         builder = PromptBuilder(
             example_bank=example_bank,
             default_few_shot_k=2,
@@ -360,6 +378,7 @@ class TestPromptBuilder:
 
 
 # ── Engine Tests ──
+
 
 class TestPromptStrategyEngine:
     def test_engine_from_settings_builtin_fallback(self, tmp_path: Path) -> None:
@@ -431,6 +450,7 @@ class TestPromptStrategyEngine:
 
 # ── Integration / Edge Cases ──
 
+
 class TestEdgeCases:
     def test_empty_example_bank_filter(self) -> None:
         bank = ExampleBank()
@@ -452,13 +472,15 @@ class TestEdgeCases:
 
     def test_example_yaml_roundtrip(self, tmp_path: Path) -> None:
         bank = ExampleBank()
-        bank.add(Example(
-            knowledge="K",
-            question="Q?",
-            question_type=QuestionType.COMPOSITE,
-            strategy=PromptStrategy.COT,
-            metadata={"tag": "test"},
-        ))
+        bank.add(
+            Example(
+                knowledge="K",
+                question="Q?",
+                question_type=QuestionType.COMPOSITE,
+                strategy=PromptStrategy.COT,
+                metadata={"tag": "test"},
+            )
+        )
         path = tmp_path / "roundtrip.yaml"
         bank.save_to_yaml(path)
         loaded = ExampleBank()

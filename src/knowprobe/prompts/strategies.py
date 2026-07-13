@@ -26,11 +26,9 @@ from knowprobe.prompts.examples import (
     Example,
     ExampleBank,
     ExampleSelector,
-    ExampleSelectorFactory,
     RandomExampleSelector,
 )
 from knowprobe.prompts.templates import (
-    PromptTemplate,
     TemplateRegistry,
     load_builtin_templates,
 )
@@ -98,7 +96,7 @@ class BaseStrategy(ABC):
     def _builtin_registry() -> TemplateRegistry:
         """Create a registry populated with built-in templates (no file I/O)."""
         registry = TemplateRegistry(".")  # dummy path
-        for key, tmpl in load_builtin_templates().items():
+        for _key, tmpl in load_builtin_templates().items():
             registry.register(tmpl)
         return registry
 
@@ -330,6 +328,8 @@ class SelfConsistencyStrategy(BaseStrategy):
                 "sample_index": i + 1,
             }
             prompt = self._render_template(context.question_type, tmpl_context)
+            if instruction not in prompt:
+                prompt = f"{prompt}\n\nReasoning variation {i + 1}: {instruction}"
             prompts.append(prompt)
         return prompts
 
@@ -420,9 +420,7 @@ class StrategyFactory:
             strategy_cls: A concrete subclass of BaseStrategy.
         """
         if not issubclass(strategy_cls, BaseStrategy):
-            raise TypeError(
-                f"Strategy class must inherit from BaseStrategy, got {strategy_cls}"
-            )
+            raise TypeError(f"Strategy class must inherit from BaseStrategy, got {strategy_cls}")
         cls._strategies[strategy] = strategy_cls
         logger.info(
             "strategy_registered",

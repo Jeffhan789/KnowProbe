@@ -2,7 +2,6 @@
 
 from __future__ import annotations
 
-import uuid
 from datetime import datetime
 from typing import Any
 
@@ -15,7 +14,12 @@ from knowprobe.api.schemas import (
     ExperimentResponse,
     RunExperimentRequest,
 )
-from knowprobe.core.models import ExperimentConfig, ExperimentResult, GeneratedQuestion
+from knowprobe.core.models import (
+    EvaluationResult,
+    ExperimentConfig,
+    ExperimentResult,
+    GeneratedQuestion,
+)
 from knowprobe.utils.logging import get_logger
 
 logger = get_logger("api.routes.experiments")
@@ -120,16 +124,14 @@ async def list_experiments(
         ExperimentListResponse with paginated experiment list.
     """
     logger.info("list_experiments", request_id=request_id)
-    all_configs = [
-        ExperimentConfig(**item["config"])
-        for item in _experiments.values()
-    ]
+    all_configs = [ExperimentConfig(**item["config"]) for item in _experiments.values()]
 
     # Sort
     if params.sort_by:
         reverse = params.sort_order == "desc"
+        sort_by = params.sort_by
         all_configs.sort(
-            key=lambda x: getattr(x, params.sort_by, x.created_at),
+            key=lambda x: getattr(x, sort_by, x.created_at),
             reverse=reverse,
         )
 
@@ -272,7 +274,7 @@ async def run_experiment(
     _experiments[experiment_id]["status"] = "running"
 
     questions = _mock_generate_for_experiment(config)
-    evaluations = []
+    evaluations: list[EvaluationResult] = []
     summary = {
         "total_questions": len(questions),
         "models_used": config.models,

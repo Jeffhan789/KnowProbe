@@ -137,7 +137,9 @@ class RuleBasedBuilder(GraphBuilder):
                     subj = groups[0].strip()
                     obj = groups[1].strip() if len(groups) == 2 else groups[2].strip()
                     triples.append((subj, rel, obj))
-                    self._logger.debug("kg.rule_match", sentence=sentence[:60], triple=(subj, rel, obj))
+                    self._logger.debug(
+                        "kg.rule_match", sentence=sentence[:60], triple=(subj, rel, obj)
+                    )
                     break  # 一个句子只匹配一个模式
 
         graph = self.build_from_triples(triples, source_id=source_id or "rule_extraction")
@@ -239,7 +241,12 @@ JSON:"""
                 return []
             triples = []
             for item in data:
-                if isinstance(item, dict) and "subject" in item and "relation" in item and "object" in item:
+                if (
+                    isinstance(item, dict)
+                    and "subject" in item
+                    and "relation" in item
+                    and "object" in item
+                ):
                     triples.append((item["subject"], item["relation"], item["object"]))
             return triples
         except json.JSONDecodeError as e:

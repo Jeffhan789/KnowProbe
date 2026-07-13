@@ -1,6 +1,5 @@
 """RAG evaluation metrics and assessment."""
 
-import time
 from collections.abc import Sequence
 from typing import Any
 
@@ -19,9 +18,7 @@ class RAGMetricCalculator:
     """Calculate individual RAG evaluation metrics."""
 
     @staticmethod
-    def recall_at_k(
-        retrieved_ids: Sequence[str], relevant_ids: Sequence[str], k: int
-    ) -> float:
+    def recall_at_k(retrieved_ids: Sequence[str], relevant_ids: Sequence[str], k: int) -> float:
         """Calculate Recall@K: proportion of relevant docs retrieved in top-k."""
         if not relevant_ids:
             return 0.0
@@ -30,9 +27,7 @@ class RAGMetricCalculator:
         return len(retrieved_top_k & relevant) / len(relevant)
 
     @staticmethod
-    def precision_at_k(
-        retrieved_ids: Sequence[str], relevant_ids: Sequence[str], k: int
-    ) -> float:
+    def precision_at_k(retrieved_ids: Sequence[str], relevant_ids: Sequence[str], k: int) -> float:
         """Calculate Precision@K: proportion of retrieved docs that are relevant."""
         if k == 0:
             return 0.0
@@ -50,9 +45,7 @@ class RAGMetricCalculator:
         return 0.0
 
     @staticmethod
-    def ndcg_at_k(
-        retrieved_ids: Sequence[str], relevant_ids: Sequence[str], k: int
-    ) -> float:
+    def ndcg_at_k(retrieved_ids: Sequence[str], relevant_ids: Sequence[str], k: int) -> float:
         """Calculate NDCG@K: normalized discounted cumulative gain."""
         if not relevant_ids or k == 0:
             return 0.0
@@ -146,9 +139,7 @@ class RAGMetricCalculator:
             return 0.0
 
     @staticmethod
-    def context_relevance(
-        query_text: str, retrieved_chunks: Sequence[RAGChunk]
-    ) -> float:
+    def context_relevance(query_text: str, retrieved_chunks: Sequence[RAGChunk]) -> float:
         """Calculate average semantic similarity between query and retrieved chunks."""
         if not retrieved_chunks:
             return 0.0
@@ -158,9 +149,7 @@ class RAGMetricCalculator:
             model = SentenceTransformer("sentence-transformers/all-MiniLM-L6-v2")
             texts = [query_text] + [c.content for c in retrieved_chunks]
             embeddings = model.encode(texts, normalize_embeddings=True)
-            similarities = [
-                float(np.dot(embeddings[0], emb)) for emb in embeddings[1:]
-            ]
+            similarities = [float(np.dot(embeddings[0], emb)) for emb in embeddings[1:]]
             return float(np.mean(similarities))
         except ImportError:
             return 0.0
@@ -169,9 +158,7 @@ class RAGMetricCalculator:
             return 0.0
 
     @staticmethod
-    def answer_faithfulness(
-        generated_answer: str, retrieved_chunks: Sequence[RAGChunk]
-    ) -> float:
+    def answer_faithfulness(generated_answer: str, retrieved_chunks: Sequence[RAGChunk]) -> float:
         """Calculate faithfulness of answer to retrieved context."""
         if not retrieved_chunks or not generated_answer.strip():
             return 0.0
@@ -212,9 +199,7 @@ class RAGEvaluator:
 
         # Determine relevant docs
         relevant_doc_ids = query.relevant_doc_ids if query else []
-        retrieved_doc_ids = [
-            r.chunk.doc_id for r in pipeline_result.retrieval_results
-        ]
+        retrieved_doc_ids = [r.chunk.doc_id for r in pipeline_result.retrieval_results]
 
         # Retrieval metrics
         if relevant_doc_ids:
@@ -228,9 +213,7 @@ class RAGEvaluator:
                 retrieval_scores[f"ndcg@{k}"] = self.calculator.ndcg_at_k(
                     retrieved_doc_ids, relevant_doc_ids, k
                 )
-            retrieval_scores["mrr"] = self.calculator.mrr(
-                retrieved_doc_ids, relevant_doc_ids
-            )
+            retrieval_scores["mrr"] = self.calculator.mrr(retrieved_doc_ids, relevant_doc_ids)
 
         # Context relevance
         if query and pipeline_result.retrieval_results:
@@ -257,9 +240,7 @@ class RAGEvaluator:
 
         # End-to-end metrics
         if expected and generated:
-            end_to_end_scores["answer_accuracy"] = generation_scores.get(
-                "semantic_similarity", 0.0
-            )
+            end_to_end_scores["answer_accuracy"] = generation_scores.get("semantic_similarity", 0.0)
 
         if pipeline_result.retrieval_results and generated:
             end_to_end_scores["faithfulness"] = self.calculator.answer_faithfulness(
@@ -301,9 +282,9 @@ class RAGEvaluator:
             "retrieval": self._aggregate_scores([m.retrieval for m in all_metrics]),
             "generation": self._aggregate_scores([m.generation for m in all_metrics]),
             "end_to_end": self._aggregate_scores([m.end_to_end for m in all_metrics]),
-            "avg_latency_ms": float(
-                np.mean([m.latency_ms for m in all_metrics])
-            ) if all_metrics else 0.0,
+            "avg_latency_ms": float(np.mean([m.latency_ms for m in all_metrics]))
+            if all_metrics
+            else 0.0,
         }
 
         logger.info("evaluator.batch_complete", num_results=len(pipeline_results))
@@ -315,7 +296,7 @@ class RAGEvaluator:
         if not scores_list:
             return {}
 
-        all_keys = set()
+        all_keys: set[str] = set()
         for scores in scores_list:
             all_keys.update(scores.keys())
 

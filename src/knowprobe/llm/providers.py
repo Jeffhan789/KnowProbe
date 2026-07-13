@@ -1,18 +1,9 @@
 """LLM provider implementations."""
 
-
-
-import asyncio
 import time
-from typing import Optional, Union,  Any
+from typing import Any
 
 import httpx
-from tenacity import (
-    retry,
-    retry_if_exception_type,
-    stop_after_attempt,
-    wait_exponential,
-)
 
 from knowprobe.core.models import ModelProvider
 from knowprobe.utils.logging import get_logger
@@ -27,7 +18,7 @@ from .exceptions import (
     LLMResponseError,
     LLMTimeoutError,
 )
-from .types import GenerationRequest, GenerationResponse, LLMMetadata, Message, Role, UsageInfo
+from .types import GenerationRequest, GenerationResponse, UsageInfo
 
 logger = get_logger(__name__)
 
@@ -47,8 +38,8 @@ class OllamaClient(BaseLLMClient):
         super().__init__(model=model, provider=ModelProvider.OLLAMA.value, **kwargs)
         self.base_url = base_url.rstrip("/")
         self.timeout = timeout
-        self._sync_client: Optional[httpx.Client] = None
-        self._async_client: Optional[httpx.AsyncClient] = None
+        self._sync_client: httpx.Client | None = None
+        self._async_client: httpx.AsyncClient | None = None
 
     def _get_sync_client(self) -> httpx.Client:
         if self._sync_client is None or self._sync_client.is_closed:
@@ -180,9 +171,13 @@ class OllamaClient(BaseLLMClient):
     def _handle_http_error(self, error: httpx.HTTPStatusError) -> None:
         status = error.response.status_code
         if status == 401:
-            raise LLMAuthenticationError("Ollama authentication failed", provider=self.provider) from error
+            raise LLMAuthenticationError(
+                "Ollama authentication failed", provider=self.provider
+            ) from error
         if status == 404:
-            raise LLMModelNotFoundError(f"Model not found: {self.model}", provider=self.provider) from error
+            raise LLMModelNotFoundError(
+                f"Model not found: {self.model}", provider=self.provider
+            ) from error
         if status == 429:
             raise LLMRateLimitError("Ollama rate limit exceeded", provider=self.provider) from error
         raise LLMResponseError(
@@ -218,14 +213,17 @@ class OpenAICompatibleClient(BaseLLMClient):
         self.api_key = api_key
         self.base_url = base_url.rstrip("/")
         self.timeout = timeout
-        self._sync_client: Optional[httpx.Client] = None
-        self._async_client: Optional[httpx.AsyncClient] = None
+        self._sync_client: httpx.Client | None = None
+        self._async_client: httpx.AsyncClient | None = None
 
     def _get_sync_client(self) -> httpx.Client:
         if self._sync_client is None or self._sync_client.is_closed:
             self._sync_client = httpx.Client(
                 base_url=self.base_url,
-                headers={"Authorization": f"Bearer {self.api_key}", "Content-Type": "application/json"},
+                headers={
+                    "Authorization": f"Bearer {self.api_key}",
+                    "Content-Type": "application/json",
+                },
                 timeout=self.timeout,
             )
         return self._sync_client
@@ -234,7 +232,10 @@ class OpenAICompatibleClient(BaseLLMClient):
         if self._async_client is None or self._async_client.is_closed:
             self._async_client = httpx.AsyncClient(
                 base_url=self.base_url,
-                headers={"Authorization": f"Bearer {self.api_key}", "Content-Type": "application/json"},
+                headers={
+                    "Authorization": f"Bearer {self.api_key}",
+                    "Content-Type": "application/json",
+                },
                 timeout=self.timeout,
             )
         return self._async_client
@@ -375,9 +376,13 @@ class OpenAICompatibleClient(BaseLLMClient):
         status = error.response.status_code
         body = error.response.text
         if status == 401:
-            raise LLMAuthenticationError(f"{self.provider} authentication failed", provider=self.provider) from error
+            raise LLMAuthenticationError(
+                f"{self.provider} authentication failed", provider=self.provider
+            ) from error
         if status == 404:
-            raise LLMModelNotFoundError(f"Model not found: {self.model}", provider=self.provider) from error
+            raise LLMModelNotFoundError(
+                f"Model not found: {self.model}", provider=self.provider
+            ) from error
         if status == 429:
             retry_after = None
             try:

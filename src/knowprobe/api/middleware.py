@@ -4,7 +4,8 @@ from __future__ import annotations
 
 import time
 import uuid
-from typing import Any, Awaitable, Callable
+from collections.abc import Awaitable, Callable
+from typing import Any
 
 from fastapi import Request, Response, status
 from fastapi.middleware.cors import CORSMiddleware
@@ -133,12 +134,17 @@ def setup_cors(app: Any, settings: Settings) -> None:
     origins = settings.api.cors_origins
     if settings.app.environment == "development":
         # In development, also allow common local ports
-        origins = list(set(origins + [
-            "http://localhost:3000",
-            "http://localhost:5173",
-            "http://localhost:8000",
-            "http://localhost:8501",
-        ]))
+        origins = list(
+            set(
+                origins
+                + [
+                    "http://localhost:3000",
+                    "http://localhost:5173",
+                    "http://localhost:8000",
+                    "http://localhost:8501",
+                ]
+            )
+        )
 
     app.add_middleware(
         CORSMiddleware,

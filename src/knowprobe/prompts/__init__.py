@@ -18,6 +18,7 @@ Usage:
 """
 
 from knowprobe.prompts.engine import PromptStrategyEngine
+from knowprobe.prompts.examples import Example, ExampleBank, ExampleSelector
 from knowprobe.prompts.strategies import (
     BaseStrategy,
     CoTStrategy,
@@ -28,7 +29,6 @@ from knowprobe.prompts.strategies import (
     ZeroShotStrategy,
 )
 from knowprobe.prompts.templates import PromptTemplate, TemplateRegistry
-from knowprobe.prompts.examples import Example, ExampleBank, ExampleSelector
 
 __all__ = [
     "PromptStrategyEngine",

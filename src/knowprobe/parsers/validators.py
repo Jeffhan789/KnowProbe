@@ -53,7 +53,9 @@ class FormatValidator(InputValidator):
         if not source_id or not isinstance(source_id, str):
             self._raise("source_id must be a non-empty string", field="source_id", value=source_id)
         elif len(source_id) > 256:
-            self._raise("source_id exceeds maximum length of 256", field="source_id", value=source_id)
+            self._raise(
+                "source_id exceeds maximum length of 256", field="source_id", value=source_id
+            )
 
         # Validate input_type
         input_type = raw.get("input_type", "triple")
@@ -66,7 +68,7 @@ class FormatValidator(InputValidator):
 
         # Validate content
         content = raw.get("content")
-        if is_empty_content(content):
+        if not isinstance(content, str) or is_empty_content(content):
             self._raise("content cannot be empty", field="content", value=content)
         elif len(content) > self.MAX_CONTENT_LENGTH:
             self._raise(
@@ -183,7 +185,10 @@ class SemanticValidator(InputValidator):
         if structured:
             entities = structured.get("entities", [])
             if not entities:
-                self._raise("entity structured data must contain at least one entity", field="structured.entities")
+                self._raise(
+                    "entity structured data must contain at least one entity",
+                    field="structured.entities",
+                )
             for i, entity in enumerate(entities):
                 name = entity.get("name")
                 if not name or not isinstance(name, str):

@@ -1,8 +1,5 @@
 """Health check endpoint for the KnowProbe API."""
 
-from datetime import datetime
-from typing import Any
-
 from fastapi import APIRouter, status
 
 from knowprobe.api.dependencies import RequestIdDep, SettingsDep

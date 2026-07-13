@@ -1,7 +1,5 @@
 """Tests for knowledge parser exceptions."""
 
-import pytest
-
 from knowprobe.parsers.exceptions import (
     BatchProcessingError,
     KnowledgeParserError,

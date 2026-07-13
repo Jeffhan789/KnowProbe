@@ -7,6 +7,7 @@ from typing import Any
 from knowprobe.core.models import KnowledgeInput
 from knowprobe.parsers.exceptions import (
     BatchProcessingError,
+    KnowledgeParserError,
     ParseError,
     UnsupportedFormatError,
     ValidationError,
@@ -115,10 +116,12 @@ class KnowledgeInputProcessor:
                 if self._strict_mode:
                     raise
                 # In non-strict mode, attach validation error to metadata
-                result.metadata.setdefault("_validation_errors", []).append({
-                    "field": exc.field,
-                    "message": str(exc),
-                })
+                result.metadata.setdefault("_validation_errors", []).append(
+                    {
+                        "field": exc.field,
+                        "message": str(exc),
+                    }
+                )
 
         logger.info(
             "processing_complete",
@@ -235,7 +238,9 @@ class KnowledgeInputProcessor:
             return "triple"
 
         # Check for schema patterns
-        if "->" in stripped or (":" in stripped and any(c in stripped for c in ["Entity", "Class", "Type"])):
+        if "->" in stripped or (
+            ":" in stripped and any(c in stripped for c in ["Entity", "Class", "Type"])
+        ):
             return "schema"
 
         # Check for entity patterns with brackets or braces

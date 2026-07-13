@@ -8,7 +8,6 @@ from pathlib import Path
 from typing import Annotated
 
 import typer
-from rich.progress import Progress
 
 from knowprobe.core.config import get_settings, load_settings
 from knowprobe.core.models import (
@@ -28,7 +27,6 @@ from ..utils import (
     console,
     create_progress_bar,
     format_duration,
-    print_error,
     print_header,
     print_info,
     print_success,
@@ -58,12 +56,22 @@ def generate_single(
         QuestionType,
         typer.Option("--type", "-t", help="Question type", case_sensitive=False),
     ] = QuestionType.FACTUAL,
-    source_id: Annotated[str, typer.Option("--source-id", help="Knowledge source ID")] = "cli-input",
-    input_type: Annotated[str, typer.Option("--input-type", help="Input type (triple|schema|text|entity)")] = "text",
-    output: Annotated[Path | None, typer.Option("--output", "-o", help="Output file path (JSON)")] = None,
+    source_id: Annotated[
+        str, typer.Option("--source-id", help="Knowledge source ID")
+    ] = "cli-input",
+    input_type: Annotated[
+        str, typer.Option("--input-type", help="Input type (triple|schema|text|entity)")
+    ] = "text",
+    output: Annotated[
+        Path | None, typer.Option("--output", "-o", help="Output file path (JSON)")
+    ] = None,
     config: Annotated[Path | None, typer.Option("--config", "-c", help="Config file path")] = None,
-    temperature: Annotated[float | None, typer.Option("--temperature", help="Generation temperature")] = None,
-    max_length: Annotated[int | None, typer.Option("--max-length", help="Maximum generation length")] = None,
+    temperature: Annotated[
+        float | None, typer.Option("--temperature", help="Generation temperature")
+    ] = None,
+    max_length: Annotated[
+        int | None, typer.Option("--max-length", help="Maximum generation length")
+    ] = None,
     verbose: Annotated[bool, typer.Option("--verbose", "-v", help="Enable verbose output")] = False,
 ) -> None:
     """Generate a single question from knowledge content.
@@ -75,13 +83,15 @@ def generate_single(
     try:
         _configure_environment(config, verbose)
         settings = get_settings()
-        
+
         # Resolve model name
         model_name = model or settings.models.local.default_model
-        
+
         print_header(f"Question Generation — {model_name}")
-        print_info(f"Strategy: {strategy.value} | Type: {question_type.value} | Provider: {provider.value}")
-        
+        print_info(
+            f"Strategy: {strategy.value} | Type: {question_type.value} | Provider: {provider.value}"
+        )
+
         # Create knowledge input
         knowledge = KnowledgeInput(
             source_id=source_id,
@@ -92,7 +102,7 @@ def generate_single(
                 "max_length": max_length or settings.generation.max_length,
             },
         )
-        
+
         # Build generation parameters
         gen_params = {
             "temperature": temperature or settings.generation.temperature,
@@ -100,7 +110,7 @@ def generate_single(
             "top_p": settings.generation.top_p,
             "top_k": settings.generation.top_k,
         }
-        
+
         # Generate question (placeholder for actual generator integration)
         start_time = datetime.utcnow()
         question = _generate_question_placeholder(
@@ -112,23 +122,23 @@ def generate_single(
             gen_params=gen_params,
         )
         duration = format_duration(start_time)
-        
+
         # Display result
         print_success(f"Generated in {duration}")
         console.print(questions_to_table([question]))
-        
+
         # Display the actual question text prominently
         console.print()
-        console.print(f"[bold green]Question:[/bold green]")
+        console.print("[bold green]Question:[/bold green]")
         console.print(f"[italic]{question.question_text}[/italic]")
-        
+
         if question.confidence is not None:
             console.print(f"[dim]Confidence: {question.confidence:.4f}[/dim]")
-        
+
         # Save output if requested
         if output:
             save_json_output(question, output)
-            
+
     except CLIError:
         raise
     except Exception as e:
@@ -138,7 +148,9 @@ def generate_single(
 
 @app.command("batch")
 def generate_batch(
-    input_file: Annotated[Path, typer.Argument(help="Path to input file (JSON/JSONL with knowledge entries)")],
+    input_file: Annotated[
+        Path, typer.Argument(help="Path to input file (JSON/JSONL with knowledge entries)")
+    ],
     model: Annotated[str, typer.Option("--model", "-m", help="Model name to use")] = "",
     provider: Annotated[
         ModelProvider,
@@ -152,13 +164,23 @@ def generate_batch(
         QuestionType,
         typer.Option("--type", "-t", help="Question type", case_sensitive=False),
     ] = QuestionType.FACTUAL,
-    output: Annotated[Path, typer.Option("--output", "-o", help="Output file path (JSON)")] = Path("generated_questions.json"),
+    output: Annotated[Path, typer.Option("--output", "-o", help="Output file path (JSON)")] = Path(
+        "generated_questions.json"
+    ),
     config: Annotated[Path | None, typer.Option("--config", "-c", help="Config file path")] = None,
-    temperature: Annotated[float | None, typer.Option("--temperature", help="Generation temperature")] = None,
-    max_length: Annotated[int | None, typer.Option("--max-length", help="Maximum generation length")] = None,
-    batch_size: Annotated[int, typer.Option("--batch-size", "-b", help="Batch size for processing")] = 8,
+    temperature: Annotated[
+        float | None, typer.Option("--temperature", help="Generation temperature")
+    ] = None,
+    max_length: Annotated[
+        int | None, typer.Option("--max-length", help="Maximum generation length")
+    ] = None,
+    batch_size: Annotated[
+        int, typer.Option("--batch-size", "-b", help="Batch size for processing")
+    ] = 8,
     verbose: Annotated[bool, typer.Option("--verbose", "-v", help="Enable verbose output")] = False,
-    dry_run: Annotated[bool, typer.Option("--dry-run", help="Show what would be generated without running")] = False,
+    dry_run: Annotated[
+        bool, typer.Option("--dry-run", help="Show what would be generated without running")
+    ] = False,
 ) -> None:
     """Generate questions in batch from a knowledge file.
 
@@ -172,39 +194,39 @@ def generate_batch(
     try:
         _configure_environment(config, verbose)
         settings = get_settings()
-        
+
         # Validate input file
         input_path = validate_input_file(input_file)
-        
+
         # Parse input file
         knowledge_entries = _parse_knowledge_file(input_path)
         if not knowledge_entries:
             raise ConfigurationError(f"No valid knowledge entries found in {input_path}")
-        
+
         print_header(f"Batch Question Generation — {len(knowledge_entries)} entries")
         print_info(f"Model: {model or settings.models.local.default_model}")
         print_info(f"Strategy: {strategy.value} | Type: {question_type.value}")
         print_info(f"Batch size: {batch_size}")
-        
+
         if dry_run:
             print_warning("DRY RUN — no questions will be generated")
             console.print(f"Would process {len(knowledge_entries)} entries")
             return
-        
+
         # Confirm large batches
         if len(knowledge_entries) > 100 and not confirm_action(
             f"Generate questions for {len(knowledge_entries)} entries? This may take a while."
         ):
             print_info("Operation cancelled")
             raise typer.Exit(0)
-        
+
         # Generate questions with progress bar
         start_time = datetime.utcnow()
         questions: list[GeneratedQuestion] = []
-        
+
         with create_progress_bar("Generating questions...") as progress:
             task = progress.add_task("Generating", total=len(knowledge_entries))
-            
+
             for i, entry in enumerate(knowledge_entries):
                 try:
                     knowledge = KnowledgeInput(
@@ -214,12 +236,12 @@ def generate_batch(
                         structured=entry.get("structured", {}),
                         metadata=entry.get("metadata", {}),
                     )
-                    
+
                     gen_params = {
                         "temperature": temperature or settings.generation.temperature,
                         "max_length": max_length or settings.generation.max_length,
                     }
-                    
+
                     question = _generate_question_placeholder(
                         knowledge=knowledge,
                         model_name=model or settings.models.local.default_model,
@@ -230,24 +252,26 @@ def generate_batch(
                     )
                     questions.append(question)
                     progress.advance(task)
-                    
+
                 except Exception as e:
                     logger.warning(f"Failed to generate question for entry {i}: {e}")
                     print_warning(f"Skipping entry {i}: {e}")
-        
+
         duration = format_duration(start_time)
-        
+
         # Summary
-        print_success(f"Generated {len(questions)}/{len(knowledge_entries)} questions in {duration}")
-        
+        print_success(
+            f"Generated {len(questions)}/{len(knowledge_entries)} questions in {duration}"
+        )
+
         if questions:
             console.print(questions_to_table(questions[:10]))  # Show first 10
             if len(questions) > 10:
                 print_info(f"... and {len(questions) - 10} more")
-        
+
         # Save output
         save_json_output(questions, output)
-        
+
     except CLIError:
         raise
     except Exception as e:
@@ -277,29 +301,33 @@ def preview_prompt(
     """
     try:
         _configure_environment(config, verbose)
-        
+
         print_header(f"Prompt Preview — {strategy.value}")
-        
+
         # Build the prompt (placeholder for actual prompt builder)
         prompt = _build_prompt_placeholder(
             content=content,
             strategy=strategy,
             question_type=question_type,
         )
-        
+
         console.print("[bold]System Prompt:[/bold]")
         console.print(prompt["system"], style="dim")
         console.print()
         console.print("[bold]User Prompt:[/bold]")
         console.print(prompt["user"])
-        
+
         if strategy == PromptStrategy.FEW_SHOT:
             console.print()
-            print_info(f"Would include {get_settings().prompts.few_shot_examples} few-shot examples")
+            print_info(
+                f"Would include {get_settings().prompts.few_shot_examples} few-shot examples"
+            )
         elif strategy == PromptStrategy.SELF_CONSISTENCY:
             console.print()
-            print_info(f"Would sample {get_settings().prompts.self_consistency_samples} times for self-consistency")
-            
+            print_info(
+                f"Would sample {get_settings().prompts.self_consistency_samples} times for self-consistency"
+            )
+
     except Exception as e:
         logger.exception("Prompt preview failed")
         raise GenerationError(str(e)) from e
@@ -314,10 +342,12 @@ def _configure_environment(config_path: Path | None, verbose: bool) -> None:
     """
     if config_path:
         load_settings(config_path)
-    
+
     log_level = "DEBUG" if verbose else get_settings().app.log_level
     configure_logging(level=log_level, debug=verbose)
-    logger.debug("Logging configured", level=log_level, config=str(config_path) if config_path else None)
+    logger.debug(
+        "Logging configured", level=log_level, config=str(config_path) if config_path else None
+    )
 
 
 def _parse_knowledge_file(path: Path) -> list[dict]:
@@ -334,7 +364,7 @@ def _parse_knowledge_file(path: Path) -> list[dict]:
     """
     try:
         content = path.read_text(encoding="utf-8")
-        
+
         # Try JSONL first
         if path.suffix in (".jsonl", ".ndjson") or content.strip().count("\n") > 0:
             entries = []
@@ -350,16 +380,16 @@ def _parse_knowledge_file(path: Path) -> list[dict]:
                     continue
             if entries:
                 return entries
-        
+
         # Try JSON array
         data = json.loads(content)
         if isinstance(data, list):
             return [entry for entry in data if isinstance(entry, dict) and "content" in entry]
         elif isinstance(data, dict) and "content" in data:
             return [data]
-        
+
         raise ConfigurationError(f"Could not parse knowledge entries from {path}")
-        
+
     except json.JSONDecodeError as e:
         raise ConfigurationError(f"Invalid JSON in {path}: {e}") from e
     except Exception as e:
@@ -397,7 +427,7 @@ def _generate_question_placeholder(
         question_text = f"How does the schema relate to: {knowledge.content[:50]}...?"
     else:
         question_text = f"Explain the relationship involving: {knowledge.content[:50]}...?"
-    
+
     return GeneratedQuestion(
         id=f"q-{datetime.utcnow().strftime('%Y%m%d%H%M%S')}-{hash(knowledge.content) % 10000:04d}",
         question_text=question_text,
@@ -431,7 +461,7 @@ def _build_prompt_placeholder(
         "You are an expert at generating high-quality questions from knowledge sources. "
         "Generate questions that are clear, specific, and grounded in the provided knowledge."
     )
-    
+
     strategy_instructions = {
         PromptStrategy.ZERO_SHOT: "Generate a question directly from the knowledge provided.",
         PromptStrategy.FEW_SHOT: (
@@ -451,7 +481,7 @@ def _build_prompt_placeholder(
             "Generate a question from the knowledge provided using reasoning and action steps."
         ),
     }
-    
+
     user_prompt = f"""Knowledge Source:
 {content}
 
@@ -461,5 +491,5 @@ Instructions:
 Question Type: {question_type.value}
 
 Generate a question based on the knowledge above."""
-    
+
     return {"system": system_prompt, "user": user_prompt}

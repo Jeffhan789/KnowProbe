@@ -1,7 +1,5 @@
 """Tests for Adversarial question generation."""
 
-import pytest
-
 from knowprobe.adversarial.generator import AdversarialQuestionGenerator
 
 
@@ -29,7 +27,10 @@ class TestAdversarialQuestionGenerator:
         questions = gen.generate("What is the tallest mountain?", answer="Everest")
         edges = [q for q in questions if q.strategy == "edge_case"]
         if edges:
-            assert "second" in edges[0].adversarial_question.lower() or "shortest" in edges[0].adversarial_question.lower()
+            assert (
+                "second" in edges[0].adversarial_question.lower()
+                or "shortest" in edges[0].adversarial_question.lower()
+            )
 
     def test_specific_strategies(self) -> None:
         gen = AdversarialQuestionGenerator(seed=42)
