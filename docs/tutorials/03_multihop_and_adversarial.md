@@ -119,7 +119,7 @@ for strategy, metrics in summary["by_strategy"].items():
     print(f"  {strategy}: 失败率 {metrics['failure_rate']}")
 ```
 
-## 3. 面试谈资
+## 3. 架构要点
 
 **Q: 如何评估 RAG 系统的多跳推理能力？**
 > 使用标准基准（HotpotQA、MuSiQue）或合成多跳数据集。关键指标不是最终答案准确率，而是**推理链召回率**（系统是否检索到了所有中间事实）。因为即使答案正确，如果中间事实缺失，系统可能是靠"猜"的。
