@@ -32,11 +32,17 @@ def main() -> None:
     try:
         subprocess.run(
             [
-                sys.executable, "-m", "streamlit", "run",
+                sys.executable,
+                "-m",
+                "streamlit",
+                "run",
                 str(dashboard_path),
-                "--server.port", str(settings.dashboard.port),
-                "--server.address", "0.0.0.0",
-                "--browser.gatherUsageStats", "false",
+                "--server.port",
+                str(settings.dashboard.port),
+                "--server.address",
+                "0.0.0.0",
+                "--browser.gatherUsageStats",
+                "false",
             ],
             check=True,
         )

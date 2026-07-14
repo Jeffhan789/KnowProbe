@@ -7,7 +7,6 @@ from knowprobe.core.models import KnowledgeInput
 from knowprobe.parsers.exceptions import ParseError, UnsupportedFormatError
 from knowprobe.parsers.utils import (
     chunk_text,
-    clean_triple_content,
     extract_entities,
     extract_schema_entries,
     extract_triples,
@@ -32,7 +31,9 @@ class KnowledgeParser(ABC):
         return self._input_type
 
     @abstractmethod
-    def parse(self, content: str, source_id: str | None = None, metadata: dict[str, Any] | None = None) -> KnowledgeInput:
+    def parse(
+        self, content: str, source_id: str | None = None, metadata: dict[str, Any] | None = None
+    ) -> KnowledgeInput:
         """Parse raw content into a structured KnowledgeInput.
 
         Args:
@@ -48,7 +49,13 @@ class KnowledgeParser(ABC):
         """
         raise NotImplementedError
 
-    def _create_input(self, content: str, structured: dict[str, Any], source_id: str | None = None, metadata: dict[str, Any] | None = None) -> KnowledgeInput:
+    def _create_input(
+        self,
+        content: str,
+        structured: dict[str, Any],
+        source_id: str | None = None,
+        metadata: dict[str, Any] | None = None,
+    ) -> KnowledgeInput:
         """Create a KnowledgeInput with standardized defaults."""
         return KnowledgeInput(
             source_id=source_id or generate_source_id(),
@@ -101,7 +108,9 @@ class TripleParser(KnowledgeParser):
         """Initialize triple parser."""
         super().__init__("triple")
 
-    def parse(self, content: str, source_id: str | None = None, metadata: dict[str, Any] | None = None) -> KnowledgeInput:
+    def parse(
+        self, content: str, source_id: str | None = None, metadata: dict[str, Any] | None = None
+    ) -> KnowledgeInput:
         """Parse triple content into KnowledgeInput.
 
         Args:
@@ -155,7 +164,9 @@ class SchemaParser(KnowledgeParser):
         """Initialize schema parser."""
         super().__init__("schema")
 
-    def parse(self, content: str, source_id: str | None = None, metadata: dict[str, Any] | None = None) -> KnowledgeInput:
+    def parse(
+        self, content: str, source_id: str | None = None, metadata: dict[str, Any] | None = None
+    ) -> KnowledgeInput:
         """Parse schema content into KnowledgeInput.
 
         Args:
@@ -195,8 +206,7 @@ class SchemaParser(KnowledgeParser):
             "entry_count": len(entries),
             "entity_types": list(entity_types.keys()),
             "properties_by_type": {
-                et: list({e["property"] for e in ents})
-                for et, ents in entity_types.items()
+                et: list({e["property"] for e in ents}) for et, ents in entity_types.items()
             },
         }
 
@@ -223,7 +233,9 @@ class TextParser(KnowledgeParser):
         self._chunk_size = chunk_size
         self._chunk_overlap = chunk_overlap
 
-    def parse(self, content: str, source_id: str | None = None, metadata: dict[str, Any] | None = None) -> KnowledgeInput:
+    def parse(
+        self, content: str, source_id: str | None = None, metadata: dict[str, Any] | None = None
+    ) -> KnowledgeInput:
         """Parse text content into KnowledgeInput with chunks.
 
         Args:
@@ -277,7 +289,9 @@ class EntityParser(KnowledgeParser):
         """Initialize entity parser."""
         super().__init__("entity")
 
-    def parse(self, content: str, source_id: str | None = None, metadata: dict[str, Any] | None = None) -> KnowledgeInput:
+    def parse(
+        self, content: str, source_id: str | None = None, metadata: dict[str, Any] | None = None
+    ) -> KnowledgeInput:
         """Parse entity content into KnowledgeInput.
 
         Args:
@@ -307,8 +321,9 @@ class EntityParser(KnowledgeParser):
         for entity in entities:
             if "type" in entity:
                 all_types.add(entity["type"])
-            if "properties" in entity:
-                all_properties.update(entity["properties"].keys())
+            properties = entity.get("properties")
+            if isinstance(properties, dict):
+                all_properties.update(str(key) for key in properties)
 
         structured = {
             "entities": entities,
@@ -332,7 +347,11 @@ class ParserRegistry:
     def register(cls, parser: KnowledgeParser) -> None:
         """Register a parser instance."""
         cls._parsers[parser.input_type] = parser
-        logger.info("parser_registered", parser_type=parser.input_type, parser_class=parser.__class__.__name__)
+        logger.info(
+            "parser_registered",
+            parser_type=parser.input_type,
+            parser_class=parser.__class__.__name__,
+        )
 
     @classmethod
     def get(cls, input_type: str) -> KnowledgeParser:

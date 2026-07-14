@@ -28,6 +28,7 @@ logger = get_logger(__name__)
 # RAG evaluation data structures
 # ---------------------------------------------------------------------------
 
+
 @dataclass(frozen=True)
 class RetrievalMetrics:
     """Retrieval quality metrics for a single query."""
@@ -103,6 +104,7 @@ class RAGEvaluationReport:
 # ---------------------------------------------------------------------------
 # Retrieval evaluators
 # ---------------------------------------------------------------------------
+
 
 class RetrievalEvaluator:
     """Evaluate retrieval quality of a RAG pipeline.
@@ -181,12 +183,10 @@ class RetrievalEvaluator:
     ) -> list[RetrievalMetrics]:
         """Evaluate retrieval for a batch of queries."""
         if len(queries) != len(results):
-            raise ValueError(
-                f"Query and result count mismatch: {len(queries)} vs {len(results)}"
-            )
+            raise ValueError(f"Query and result count mismatch: {len(queries)} vs {len(results)}")
 
         metrics: list[RetrievalMetrics] = []
-        for query, result in zip(queries, results):
+        for query, result in zip(queries, results, strict=False):
             try:
                 metric = self.evaluate_single(query, result)
                 metrics.append(metric)
@@ -221,10 +221,7 @@ class RetrievalEvaluator:
         ideal_relevance = [1] * min(num_relevant, len(relevance)) + [0] * max(
             0, len(relevance) - num_relevant
         )
-        idcg = sum(
-            rel / math.log2(i + 2)
-            for i, rel in enumerate(ideal_relevance)
-        )
+        idcg = sum(rel / math.log2(i + 2) for i, rel in enumerate(ideal_relevance))
 
         return dcg / idcg if idcg > 0 else 0.0
 
@@ -232,6 +229,7 @@ class RetrievalEvaluator:
 # ---------------------------------------------------------------------------
 # Generation evaluators
 # ---------------------------------------------------------------------------
+
 
 class GenerationEvaluator:
     """Evaluate generation quality of a RAG pipeline.
@@ -249,13 +247,17 @@ class GenerationEvaluator:
         if self._embedding_fn is None:
             try:
                 from sentence_transformers import SentenceTransformer
+
                 model_name = self.embedding_model or "sentence-transformers/all-MiniLM-L6-v2"
                 self._embedding_fn = SentenceTransformer(model_name)
                 logger.info("rag_embedding_model_loaded", model=model_name)
             except Exception as e:
                 logger.error("rag_embedding_model_load_failed", error=str(e))
                 raise RuntimeError(f"Failed to load embedding model: {e}") from e
-        return self._embedding_fn.encode(texts)
+        embedding_fn = self._embedding_fn
+        if embedding_fn is None:
+            raise RuntimeError("Embedding model failed to initialize")
+        return embedding_fn.encode(texts)
 
     def evaluate_single(
         self,
@@ -264,27 +266,19 @@ class GenerationEvaluator:
     ) -> GenerationMetrics:
         """Evaluate generation for a single query-result pair."""
         # Faithfulness: how much of the answer is supported by retrieved docs
-        faithfulness = self._compute_faithfulness(
-            result.generated_answer, result.retrieved_docs
-        )
+        faithfulness = self._compute_faithfulness(result.generated_answer, result.retrieved_docs)
 
         # Answer relevance: similarity between query and answer
-        answer_relevance = self._compute_answer_relevance(
-            query.query_text, result.generated_answer
-        )
+        answer_relevance = self._compute_answer_relevance(query.query_text, result.generated_answer)
 
         # Context precision: what fraction of retrieved docs are relevant
-        context_precision = self._compute_context_precision(
-            query, result.retrieved_docs
-        )
+        context_precision = self._compute_context_precision(query, result.retrieved_docs)
 
         # BLEU and ROUGE against expected answer
         answer_bleu = 0.0
         answer_rouge_l = 0.0
         if query.expected_answer:
-            answer_bleu = self._compute_answer_bleu(
-                result.generated_answer, query.expected_answer
-            )
+            answer_bleu = self._compute_answer_bleu(result.generated_answer, query.expected_answer)
             answer_rouge_l = self._compute_answer_rouge_l(
                 result.generated_answer, query.expected_answer
             )
@@ -312,12 +306,10 @@ class GenerationEvaluator:
     ) -> list[GenerationMetrics]:
         """Evaluate generation for a batch of queries."""
         if len(queries) != len(results):
-            raise ValueError(
-                f"Query and result count mismatch: {len(queries)} vs {len(results)}"
-            )
+            raise ValueError(f"Query and result count mismatch: {len(queries)} vs {len(results)}")
 
         metrics: list[GenerationMetrics] = []
-        for query, result in zip(queries, results):
+        for query, result in zip(queries, results, strict=False):
             try:
                 metric = self.evaluate_single(query, result)
                 metrics.append(metric)
@@ -412,6 +404,7 @@ class GenerationEvaluator:
 # ---------------------------------------------------------------------------
 # Main RAG evaluator
 # ---------------------------------------------------------------------------
+
 
 class RAGEvaluator:
     """Main evaluator for RAG pipeline evaluation.

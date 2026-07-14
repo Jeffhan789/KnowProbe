@@ -5,7 +5,6 @@ from __future__ import annotations
 
 import sys
 
-from knowprobe.api.main import app
 from knowprobe.core.config import get_settings
 from knowprobe.utils.logging import configure_logging, get_logger
 

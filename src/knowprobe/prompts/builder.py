@@ -21,7 +21,6 @@ from knowprobe.prompts.examples import (
     ExampleSelectorFactory,
 )
 from knowprobe.prompts.strategies import (
-    BaseStrategy,
     PromptContext,
     StrategyFactory,
 )
@@ -72,9 +71,6 @@ class PromptBuilder:
     def default_few_shot_k(self) -> int:
         """Return the default number of few-shot examples."""
         return self._default_few_shot_k
-        self._example_bank = example_bank or ExampleBank()
-        self._example_selector = example_selector or ExampleSelectorFactory.create("random")
-        self._default_few_shot_k = default_few_shot_k
 
     def build(
         self,

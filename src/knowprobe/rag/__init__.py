@@ -11,7 +11,7 @@ from knowprobe.rag.embeddings import (
     SentenceTransformerEmbeddings,
 )
 from knowprobe.rag.pipeline import PipelineBuilder, RAGPipeline
-from knowprobe.rag.rag_evaluator import RAGMetricCalculator, RAGEvaluator
+from knowprobe.rag.rag_evaluator import RAGEvaluator, RAGMetricCalculator
 from knowprobe.rag.rag_generator import (
     GenerationBackend,
     OllamaBackend,

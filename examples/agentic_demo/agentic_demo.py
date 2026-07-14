@@ -23,14 +23,17 @@ class MockRetriever:
 
     def retrieve(self, query: str, top_k: int = 3):
         from knowprobe.core.models import RAGChunk, RetrievalResult
+
         results = []
         for k, v in self.data.items():
             if any(word in query.lower() for word in k.split()):
-                results.append(RetrievalResult(
-                    chunk=RAGChunk(chunk_id=k, doc_id=k, content=v),
-                    score=0.9,
-                    rank=len(results) + 1,
-                ))
+                results.append(
+                    RetrievalResult(
+                        chunk=RAGChunk(chunk_id=k, doc_id=k, content=v),
+                        score=0.9,
+                        rank=len(results) + 1,
+                    )
+                )
         return results[:top_k]
 
 
@@ -81,7 +84,7 @@ def main() -> None:
     print(f"实际迭代: {result['iterations_used']}")
     print(f"总延迟: {result['total_latency_ms']:.0f} ms")
 
-    print(f"\n推理轨迹:")
+    print("\n推理轨迹:")
     for step in result["reasoning_trace"]:
         print(f"\n  Step {step['step_number']}: {step['action']}")
         print(f"    Thought: {step['thought'][:80]}...")

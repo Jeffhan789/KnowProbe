@@ -2,7 +2,6 @@
 
 from abc import ABC, abstractmethod
 from collections import Counter
-from typing import Any
 
 import numpy as np
 from numpy.typing import NDArray
@@ -43,14 +42,14 @@ class DenseRetriever(BaseRetriever):
     ) -> None:
         from knowprobe.rag.document_processor import DocumentProcessor, FixedSizeChunking
 
-        self.embedding_provider = embedding_provider or EmbeddingProvider.__new__(
-            EmbeddingProvider
-        )
+        if embedding_provider is None:
+            from knowprobe.rag.embeddings import SentenceTransformerEmbeddings
+
+            embedding_provider = SentenceTransformerEmbeddings()
+        self.embedding_provider = embedding_provider
         self.vector_store = vector_store or InMemoryVectorStore()
         self.processor = DocumentProcessor(
-            chunking_strategy=FixedSizeChunking(
-                chunk_size=chunk_size, chunk_overlap=chunk_overlap
-            )
+            chunking_strategy=FixedSizeChunking(chunk_size=chunk_size, chunk_overlap=chunk_overlap)
         )
         logger.info("retriever.dense_init")
 
@@ -110,9 +109,7 @@ class HybridRetriever(BaseRetriever):
         self.embedding_provider = embedding_provider or SentenceTransformerEmbeddings()
         self.vector_store = vector_store or InMemoryVectorStore()
         self.processor = DocumentProcessor(
-            chunking_strategy=FixedSizeChunking(
-                chunk_size=chunk_size, chunk_overlap=chunk_overlap
-            )
+            chunking_strategy=FixedSizeChunking(chunk_size=chunk_size, chunk_overlap=chunk_overlap)
         )
         self._chunks: list[RAGChunk] = []
         self._doc_freq: Counter[str] = Counter()
@@ -177,11 +174,7 @@ class HybridRetriever(BaseRetriever):
         results: list[RetrievalResult] = []
         for rank, (chunk_id, score) in enumerate(sorted_scores[:top_k], 1):
             if chunk_id in chunk_map:
-                results.append(
-                    RetrievalResult(
-                        chunk=chunk_map[chunk_id], score=score, rank=rank
-                    )
-                )
+                results.append(RetrievalResult(chunk=chunk_map[chunk_id], score=score, rank=rank))
 
         return results
 

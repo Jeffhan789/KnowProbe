@@ -3,7 +3,6 @@
 from __future__ import annotations
 
 import json
-import sys
 from datetime import datetime
 from pathlib import Path
 from typing import Any, TypeVar
@@ -232,7 +231,10 @@ def save_json_output(data: Any, output_path: Path | str) -> None:
             json_data = json.dumps(data.model_dump(mode="json"), indent=2, ensure_ascii=False)
         elif hasattr(data, "__iter__") and not isinstance(data, str):
             json_data = json.dumps(
-                [item.model_dump(mode="json") if hasattr(item, "model_dump") else item for item in data],
+                [
+                    item.model_dump(mode="json") if hasattr(item, "model_dump") else item
+                    for item in data
+                ],
                 indent=2,
                 ensure_ascii=False,
             )
@@ -262,8 +264,11 @@ def validate_input_file(path: Path | str) -> Path:
         raise ConfigurationError(f"Input file not found: {p}")
     if not p.is_file():
         raise ConfigurationError(f"Path is not a file: {p}")
-    if not p.readable():
-        raise ConfigurationError(f"File is not readable: {p}")
+    try:
+        with p.open("rb"):
+            pass
+    except OSError as exc:
+        raise ConfigurationError(f"File is not readable: {p}") from exc
     return p
 
 

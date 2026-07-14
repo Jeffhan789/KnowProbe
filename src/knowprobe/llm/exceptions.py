@@ -1,14 +1,14 @@
 """LLM client exceptions."""
 
-
-
-from typing import Optional, Union,  Any
+from typing import Any
 
 
 class LLMError(Exception):
     """Base exception for LLM client errors."""
 
-    def __init__(self, message: str, *, provider: Optional[str] = None, details: Optional[dict[str, Any]] = None) -> None:
+    def __init__(
+        self, message: str, *, provider: str | None = None, details: dict[str, Any] | None = None
+    ) -> None:
         super().__init__(message)
         self.message = message
         self.provider = provider
@@ -42,9 +42,9 @@ class LLMRateLimitError(LLMError):
         self,
         message: str,
         *,
-        provider: Optional[str] = None,
-        retry_after: Optional[float] = None,
-        details: Optional[dict[str, Any]] = None,
+        provider: str | None = None,
+        retry_after: float | None = None,
+        details: dict[str, Any] | None = None,
     ) -> None:
         super().__init__(message, provider=provider, details=details)
         self.retry_after = retry_after

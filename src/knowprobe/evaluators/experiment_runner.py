@@ -12,7 +12,6 @@ Produces structured ExperimentResult objects with full provenance.
 from __future__ import annotations
 
 import json
-import uuid
 from collections import defaultdict
 from dataclasses import dataclass, field
 from datetime import datetime
@@ -32,7 +31,7 @@ from knowprobe.core.models import (
 )
 from knowprobe.utils.logging import get_logger
 
-from .metrics import AggregateScore, MetricRegistry, MetricScore
+from .metrics import MetricRegistry
 from .question_evaluator import QuestionEvaluator, QuestionQualityReport
 
 logger = get_logger(__name__)
@@ -41,6 +40,7 @@ logger = get_logger(__name__)
 # ---------------------------------------------------------------------------
 # Experiment result structures
 # ---------------------------------------------------------------------------
+
 
 @dataclass
 class ConditionResult:
@@ -136,6 +136,7 @@ class ComparativeAnalysis:
 # ---------------------------------------------------------------------------
 # Experiment runner
 # ---------------------------------------------------------------------------
+
 
 class ExperimentRunner:
     """Orchestrates controlled experiments for question generation evaluation.
@@ -290,8 +291,8 @@ class ExperimentRunner:
         knowledge_inputs: list[Any],
     ) -> list[GeneratedQuestion]:
         """Generate questions using the configured generator."""
-        # This is a placeholder - the actual generator interface would be
-        # provided by the generators module
+        if self.question_generator is None:
+            raise RuntimeError("A question_generator is required for live generation")
         questions: list[GeneratedQuestion] = []
         for ki in knowledge_inputs:
             try:
@@ -363,17 +364,11 @@ class ExperimentRunner:
         }
 
         # Aggregate by model
-        model_stats: dict[str, dict[str, list[float]]] = defaultdict(
-            lambda: defaultdict(list)
-        )
+        model_stats: dict[str, dict[str, list[float]]] = defaultdict(lambda: defaultdict(list))
         # Aggregate by strategy
-        strategy_stats: dict[str, dict[str, list[float]]] = defaultdict(
-            lambda: defaultdict(list)
-        )
+        strategy_stats: dict[str, dict[str, list[float]]] = defaultdict(lambda: defaultdict(list))
         # Aggregate by question type
-        type_stats: dict[str, dict[str, list[float]]] = defaultdict(
-            lambda: defaultdict(list)
-        )
+        type_stats: dict[str, dict[str, list[float]]] = defaultdict(lambda: defaultdict(list))
 
         for condition in self.condition_results:
             overall_scores = condition.get_overall_quality_scores()
@@ -383,7 +378,13 @@ class ExperimentRunner:
                 type_stats[condition.question_type.value]["overall_quality"].extend(overall_scores)
 
             # Dimension scores
-            for dim_name in ["relevance", "type_consistency", "answerability", "fluency", "structural_grounding"]:
+            for dim_name in [
+                "relevance",
+                "type_consistency",
+                "answerability",
+                "fluency",
+                "structural_grounding",
+            ]:
                 scores = condition.get_dimension_scores(dim_name)
                 if scores:
                     model_stats[condition.model_name][dim_name].extend(scores)
@@ -527,14 +528,14 @@ class ExperimentRunner:
         if len(baseline_scores) == len(comparison_scores) and len(baseline_scores) > 1:
             t_stat, p_value = stats.ttest_rel(baseline_scores, comparison_scores)
         else:
-            t_stat, p_value = stats.ttest_ind(
-                baseline_scores, comparison_scores, equal_var=False
-            )
+            t_stat, p_value = stats.ttest_ind(baseline_scores, comparison_scores, equal_var=False)
 
         # Cohen's d effect size
-        pooled_std = np.sqrt(
-            (np.var(baseline_scores) + np.var(comparison_scores)) / 2
-        ) if len(baseline_scores) > 1 and len(comparison_scores) > 1 else 0.0
+        pooled_std = (
+            np.sqrt((np.var(baseline_scores) + np.var(comparison_scores)) / 2)
+            if len(baseline_scores) > 1 and len(comparison_scores) > 1
+            else 0.0
+        )
         effect_size = difference / pooled_std if pooled_std > 0 else 0.0
 
         significance_level = 0.05
@@ -555,7 +556,9 @@ class ExperimentRunner:
             significance_level=significance_level,
         )
 
-    def get_all_comparisons(self, metric_name: str = "overall_quality") -> list[ComparativeAnalysis]:
+    def get_all_comparisons(
+        self, metric_name: str = "overall_quality"
+    ) -> list[ComparativeAnalysis]:
         """Get all pairwise comparisons for strategies, models, and types."""
         comparisons: list[ComparativeAnalysis] = []
 
@@ -594,7 +597,9 @@ class ExperimentRunner:
         output_path = Path(output_dir)
         output_path.mkdir(parents=True, exist_ok=True)
 
-        filename = f"{experiment_result.experiment_id}_{datetime.now().strftime('%Y%m%d_%H%M%S')}.json"
+        filename = (
+            f"{experiment_result.experiment_id}_{datetime.now().strftime('%Y%m%d_%H%M%S')}.json"
+        )
         filepath = output_path / filename
 
         # Convert to serializable dict
@@ -615,6 +620,6 @@ class ExperimentRunner:
 
     def load_results(self, filepath: str | Path) -> dict[str, Any]:
         """Load experiment results from JSON."""
-        with open(filepath, "r", encoding="utf-8") as f:
+        with open(filepath, encoding="utf-8") as f:
             data = json.load(f)
         return data

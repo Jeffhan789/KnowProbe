@@ -12,9 +12,9 @@ from knowprobe.api.schemas import (
     AvailableStrategiesResponse,
     AvailableTypesResponse,
     BatchGenerationResponse,
-    GenerationResponse,
     GenerateBatchRequest,
     GenerateQuestionRequest,
+    GenerationResponse,
     StrategyInfo,
     TypeInfo,
 )
@@ -349,6 +349,4 @@ def _mock_generate_question(request: GenerateQuestionRequest) -> str:
     strategy_label = request.prompt_strategy.replace("_", " ").title()
     type_label = request.question_type.replace("_", " ").title()
     content_preview = request.knowledge.content[:50]
-    return (
-        f"[{strategy_label}] {type_label} question about: {content_preview}..."
-    )
+    return f"[{strategy_label}] {type_label} question about: {content_preview}..."

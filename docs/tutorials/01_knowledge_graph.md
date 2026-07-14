@@ -114,7 +114,7 @@ graph_r = EgoGraphRetriever(graph, k_hops=2)
 hybrid = HybridGraphRetriever(dense, graph_r, dense_weight=0.6, graph_weight=0.4)
 ```
 
-## 4. 面试谈资
+## 4. 架构要点
 
 **Q: 为什么 GraphRAG 比传统 RAG 好？**
 > 传统 RAG 只依赖语义相似度，丢失了实体间的显式关系。对于多跳推理问题（如"A 和 B 的关系"），相关文档在语义上可能不相似，导致向量检索漏掉关键信息。GraphRAG 用知识图谱显式建模关系，通过图遍历发现跨文档的关联路径。

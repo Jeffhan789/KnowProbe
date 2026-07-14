@@ -378,7 +378,7 @@ class QuestionGeneratorEngine(BaseQuestionGenerator):
 
         # 3. Build results preserving order
         results: list[GeneratedQuestion] = []
-        for knowledge, response in zip(knowledges, responses):
+        for knowledge, response in zip(knowledges, responses, strict=False):
             question_text = self._parse_output(response.text, question_type, prompt_strategy)
             confidence = self._estimate_confidence(response, question_text, question_type)
             results.append(
@@ -395,7 +395,11 @@ class QuestionGeneratorEngine(BaseQuestionGenerator):
                         "top_p": self._gen_config.top_p,
                         "max_length": self._gen_config.max_length,
                         "latency_ms": round(avg_latency, 2),
-                        **{k: v for k, v in kwargs.items() if k not in ("examples", "reasoning_steps")},
+                        **{
+                            k: v
+                            for k, v in kwargs.items()
+                            if k not in ("examples", "reasoning_steps")
+                        },
                     },
                     raw_output=response.text,
                     confidence=confidence,

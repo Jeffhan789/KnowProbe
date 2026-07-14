@@ -1,11 +1,10 @@
 """Tests for LLM unified client."""
 
 import pytest
+
 from knowprobe.llm import (
-    BaseLLMClient,
     GenerationParams,
     GenerationRequest,
-    GenerationResponse,
     LLMConfigError,
     LLMError,
     UnifiedLLMClient,

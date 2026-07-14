@@ -45,7 +45,9 @@ class MultiHopQuestion(BaseModel):
         default_factory=list,
         description="Ordered reasoning steps: [{fact: ..., source: ...}, ...]",
     )
-    supporting_facts: list[str] = Field(default_factory=list, description="All facts needed to answer")
+    supporting_facts: list[str] = Field(
+        default_factory=list, description="All facts needed to answer"
+    )
     difficulty: str = Field(default="medium", description="easy | medium | hard")
 
 
@@ -66,7 +68,9 @@ class MultiHopMetrics(BaseModel):
         le=1.0,
         description="Fraction of all supporting facts retrieved",
     )
-    num_retrieval_steps: int = Field(default=0, description="How many retrieval steps the system took")
+    num_retrieval_steps: int = Field(
+        default=0, description="How many retrieval steps the system took"
+    )
     latency_ms: float = Field(default=0.0)
 
 
@@ -129,7 +133,6 @@ class MultiHopBenchmark:
         教学目的：不需要外部数据集，用自定义三元组就能生成本地测试用例。
         """
         from knowprobe.kg.builder import GraphBuilder
-        from knowprobe.kg.graph import KnowledgeGraph
 
         builder = GraphBuilder(name="synthetic")
         graph = builder.build_from_triples(triples)
@@ -158,15 +161,18 @@ class MultiHopBenchmark:
             shortest = min(paths, key=len)
             chain = []
             for edge in shortest:
-                chain.append({
-                    "fact": f"{graph.nodes[edge.source].label} {edge.relation} {graph.nodes[edge.target].label}",
-                    "source": edge.evidence,
-                })
+                chain.append(
+                    {
+                        "fact": f"{graph.nodes[edge.source].label} {edge.relation} {graph.nodes[edge.target].label}",
+                        "source": edge.evidence,
+                    }
+                )
 
             question = MultiHopQuestion(
                 question_id=f"synth_{len(questions)}",
                 question_text=f"How is {graph.nodes[start].label} related to {graph.nodes[end].label}?",
-                answer=f" through {len(shortest)} hops: " + " -> ".join(
+                answer=f" through {len(shortest)} hops: "
+                + " -> ".join(
                     f"{graph.nodes[e.source].label} {e.relation} {graph.nodes[e.target].label}"
                     for e in shortest
                 ),
@@ -204,7 +210,9 @@ class MultiHopBenchmark:
         for q in qs:
             from knowprobe.core.models import RAGQuery
 
-            query = RAGQuery(query_id=q.question_id, query_text=q.question_text, expected_answer=q.answer)
+            query = RAGQuery(
+                query_id=q.question_id, query_text=q.question_text, expected_answer=q.answer
+            )
             try:
                 pipeline_result = rag_pipeline.run(query)
                 generated_answer = pipeline_result.generated_answer
@@ -233,17 +241,23 @@ class MultiHopBenchmark:
         # 推理链召回：检查 retrieved chunks 是否包含 reasoning_chain 中的事实
         retrieved_texts = [c.content.lower() for c in pipeline_result.retrieval_results]
         chain_hits = sum(
-            1 for step in question.reasoning_chain
+            1
+            for step in question.reasoning_chain
             if any(step["fact"].lower() in t for t in retrieved_texts)
         )
-        chain_recall = chain_hits / len(question.reasoning_chain) if question.reasoning_chain else 0.0
+        chain_recall = (
+            chain_hits / len(question.reasoning_chain) if question.reasoning_chain else 0.0
+        )
 
         # 支撑事实召回
         fact_hits = sum(
-            1 for fact in question.supporting_facts
+            1
+            for fact in question.supporting_facts
             if any(fact.lower() in t for t in retrieved_texts)
         )
-        fact_recall = fact_hits / len(question.supporting_facts) if question.supporting_facts else 0.0
+        fact_recall = (
+            fact_hits / len(question.supporting_facts) if question.supporting_facts else 0.0
+        )
 
         return MultiHopMetrics(
             question_id=question.question_id,

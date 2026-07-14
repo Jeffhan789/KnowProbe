@@ -118,7 +118,7 @@ class PromptStrategyEngine:
                 path=str(tmpl_dir),
                 fallback="built_in_templates",
             )
-            for key, tmpl in load_builtin_templates().items():
+            for _key, tmpl in load_builtin_templates().items():
                 registry.register(tmpl)
 
         # ── Example Bank ──
@@ -298,8 +298,7 @@ class PromptStrategyEngine:
     def reload_templates(self, templates_dir: str | Path | None = None) -> None:
         """Reload templates from disk. Useful for hot-reloading during development."""
         path = Path(
-            templates_dir
-            or (self._settings.prompts.templates_dir if self._settings else ".")
+            templates_dir or (self._settings.prompts.templates_dir if self._settings else ".")
         )
         self._registry = TemplateRegistry(path)
         self._builder = PromptBuilder(

@@ -48,10 +48,7 @@ class Example(BaseModel):
 
     def to_prompt_block(self) -> str:
         """Format this example as a prompt text block."""
-        return (
-            f"Knowledge: {self.knowledge}\n"
-            f"Question: {self.question}"
-        )
+        return f"Knowledge: {self.knowledge}\nQuestion: {self.question}"
 
 
 @dataclass
@@ -113,7 +110,7 @@ class ExampleBank:
             raise ExampleLoadError(f"Example file not found: {p}")
 
         try:
-            with open(p, "r", encoding="utf-8") as f:
+            with open(p, encoding="utf-8") as f:
                 data = yaml.safe_load(f) or {}
         except yaml.YAMLError as exc:
             raise ExampleLoadError(f"Invalid YAML in {p}: {exc}") from exc
@@ -277,10 +274,7 @@ class SimilarityExampleSelector(ExampleSelector):
             )
             return []
 
-        scored = [
-            (ex, self._jaccard(knowledge_input, ex.knowledge))
-            for ex in candidates
-        ]
+        scored = [(ex, self._jaccard(knowledge_input, ex.knowledge)) for ex in candidates]
         scored.sort(key=lambda x: x[1], reverse=True)
         k = min(k, len(scored))
         return [ex for ex, _ in scored[:k]]
@@ -350,13 +344,9 @@ class DiversityExampleSelector(ExampleSelector):
             for ex in remaining:
                 sim_to_query = self._similarity(knowledge_input, ex.knowledge)
                 max_sim_to_selected = max(
-                    self._similarity(ex.knowledge, s.knowledge)
-                    for s in selected
+                    self._similarity(ex.knowledge, s.knowledge) for s in selected
                 )
-                mmr_score = (
-                    self._lambda * sim_to_query
-                    - (1 - self._lambda) * max_sim_to_selected
-                )
+                mmr_score = self._lambda * sim_to_query - (1 - self._lambda) * max_sim_to_selected
                 mmr_scores.append((ex, mmr_score))
 
             best_ex, _ = max(mmr_scores, key=lambda x: x[1])

@@ -18,22 +18,17 @@ from collections import defaultdict
 from pathlib import Path
 from typing import Any
 
-import numpy as np
-
 from knowprobe.core.models import (
     EvaluationResult,
     ExperimentConfig,
     ExperimentResult,
     GeneratedQuestion,
-    PromptStrategy,
-    QuestionType,
     RAGQuery,
     RAGResult,
 )
 from knowprobe.utils.logging import get_logger
 
 from .experiment_runner import ComparativeAnalysis, ExperimentRunner
-from .metrics import AggregateScore, MetricRegistry, MetricScore
 from .question_evaluator import QuestionEvaluator, QuestionQualityReport
 from .rag_evaluator import RAGEvaluationReport, RAGEvaluator
 from .reporter import EvaluationReport, EvaluationReporter
@@ -44,6 +39,7 @@ logger = get_logger(__name__)
 # ---------------------------------------------------------------------------
 # Pipeline configuration
 # ---------------------------------------------------------------------------
+
 
 class PipelineConfig:
     """Configuration for the evaluation pipeline."""
@@ -88,6 +84,7 @@ class PipelineConfig:
 # Pipeline stages
 # ---------------------------------------------------------------------------
 
+
 class PipelineStage:
     """Base class for a pipeline stage."""
 
@@ -129,6 +126,7 @@ class PipelineContext:
 # ---------------------------------------------------------------------------
 # Stage implementations
 # ---------------------------------------------------------------------------
+
 
 class LoadDataStage(PipelineStage):
     """Stage 1: Load generated questions and references."""
@@ -302,9 +300,7 @@ class ReportGenerationStage(PipelineStage):
         context: PipelineContext,
     ) -> dict[str, dict[str, list[float]]]:
         """Build raw data dictionary from context for statistics."""
-        raw_data: dict[str, dict[str, list[float]]] = defaultdict(
-            lambda: defaultdict(list)
-        )
+        raw_data: dict[str, dict[str, list[float]]] = defaultdict(lambda: defaultdict(list))
 
         # Quality dimension scores
         for report in context.quality_reports:
@@ -389,6 +385,7 @@ class ExportStage(PipelineStage):
 # Main pipeline
 # ---------------------------------------------------------------------------
 
+
 class EvaluationPipeline:
     """Orchestrates the complete evaluation workflow.
 
@@ -417,7 +414,9 @@ class EvaluationPipeline:
             ),
             RAGEvaluationStage(
                 k_values=self.config.k_values,
-            ) if self.config.enable_rag_eval else PipelineStage("rag_evaluation_skip"),
+            )
+            if self.config.enable_rag_eval
+            else PipelineStage("rag_evaluation_skip"),
             ReportGenerationStage(self.config),
             ExportStage(self.config),
         ]
@@ -558,7 +557,7 @@ class EvaluationPipeline:
         config = PipelineConfig(
             enable_rag_eval=True,
             k_values=self.config.k_values,
-            output_dir=self.config.output_dir,
+            output_dir=str(self.config.output_dir),
         )
         pipeline = EvaluationPipeline(config)
         context = pipeline.run(

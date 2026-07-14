@@ -7,7 +7,6 @@ from knowprobe.parsers.exceptions import (
     BatchProcessingError,
     ParseError,
     UnsupportedFormatError,
-    ValidationError,
 )
 from knowprobe.parsers.knowledge_processor import KnowledgeInputProcessor
 
@@ -163,7 +162,9 @@ class TestAutoDetection:
 
     def test_detect_text(self, processor: KnowledgeInputProcessor) -> None:
         """Test text detection."""
-        detected = processor.auto_detect_type("This is a long text about Alice and Bob living in New York City.")
+        detected = processor.auto_detect_type(
+            "This is a long text about Alice and Bob living in New York City."
+        )
         assert detected == "text"
 
     def test_process_auto(self, processor: KnowledgeInputProcessor) -> None:

@@ -1,8 +1,6 @@
 """LLM client factory."""
 
-
-
-from typing import Any, Optional, Union
+from typing import Any
 
 from knowprobe.core.config import Settings, get_settings
 from knowprobe.core.models import ModelProvider
@@ -25,9 +23,9 @@ _PROVIDER_MAP: dict[str, type[BaseLLMClient]] = {
 
 
 def create_client(
-    provider: Union[str, ModelProvider],
-    model: Optional[str] = None,
-    settings: Optional[Settings] = None,
+    provider: str | ModelProvider,
+    model: str | None = None,
+    settings: Settings | None = None,
     **kwargs: Any,
 ) -> BaseLLMClient:
     """Create an LLM client for the specified provider.
@@ -71,18 +69,26 @@ def create_client(
         if provider == ModelProvider.OLLAMA.value or provider == ModelProvider.VLLM.value:
             local_config = settings.models.local
             resolved_model = model or local_config.default_model
+            base_url = kwargs.pop("base_url", local_config.base_url)
+            timeout = kwargs.pop("timeout", local_config.timeout)
             return client_cls(
                 model=resolved_model,
-                base_url=local_config.base_url,
-                timeout=local_config.timeout,
+                base_url=base_url,
+                timeout=timeout,
                 **kwargs,
             )
 
         elif provider == ModelProvider.OPENAI.value:
-            api_config = settings.models.api.get("openai", {})
-            resolved_model = model or api_config.get("default_model", "gpt-4o-mini")
-            api_key = api_config.get("api_key", "")
-            base_url = api_config.get("base_url", "https://api.openai.com/v1")
+            api_config = settings.models.api.get("openai")
+            resolved_model = (
+                model or (api_config.default_model if api_config else "") or "gpt-4o-mini"
+            )
+            api_key = kwargs.pop("api_key", None) or (api_config.api_key if api_config else "")
+            base_url = (
+                kwargs.pop("base_url", None)
+                or (api_config.base_url if api_config else "")
+                or "https://api.openai.com/v1"
+            )
             if not api_key:
                 raise LLMConfigError("OpenAI API key not configured")
             return OpenAICompatibleClient(
@@ -94,10 +100,16 @@ def create_client(
             )
 
         elif provider == ModelProvider.DEEPSEEK.value:
-            api_config = settings.models.api.get("deepseek", {})
-            resolved_model = model or api_config.get("default_model", "deepseek-chat")
-            api_key = api_config.get("api_key", "")
-            base_url = api_config.get("base_url", "https://api.deepseek.com/v1")
+            api_config = settings.models.api.get("deepseek")
+            resolved_model = (
+                model or (api_config.default_model if api_config else "") or "deepseek-chat"
+            )
+            api_key = kwargs.pop("api_key", None) or (api_config.api_key if api_config else "")
+            base_url = (
+                kwargs.pop("base_url", None)
+                or (api_config.base_url if api_config else "")
+                or "https://api.deepseek.com/v1"
+            )
             if not api_key:
                 raise LLMConfigError("DeepSeek API key not configured")
             return DeepSeekClient(
@@ -108,10 +120,18 @@ def create_client(
             )
 
         elif provider == ModelProvider.CLAUDE.value:
-            api_config = settings.models.api.get("claude", {})
-            resolved_model = model or api_config.get("default_model", "claude-3-haiku-20240307")
-            api_key = api_config.get("api_key", "")
-            base_url = api_config.get("base_url", "https://api.anthropic.com")
+            api_config = settings.models.api.get("claude")
+            resolved_model = (
+                model
+                or (api_config.default_model if api_config else "")
+                or "claude-3-haiku-20240307"
+            )
+            api_key = kwargs.pop("api_key", None) or (api_config.api_key if api_config else "")
+            base_url = (
+                kwargs.pop("base_url", None)
+                or (api_config.base_url if api_config else "")
+                or "https://api.anthropic.com"
+            )
             if not api_key:
                 raise LLMConfigError("Claude API key not configured")
             return ClaudeClient(

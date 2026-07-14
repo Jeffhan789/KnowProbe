@@ -1,9 +1,7 @@
 """Unified LLM client with retry, caching, and metrics support."""
 
-
-
 import time
-from typing import Any, Optional
+from typing import Any
 
 from tenacity import (
     retry,
@@ -44,7 +42,7 @@ class UnifiedLLMClient:
     def __init__(
         self,
         provider: str,
-        model: Optional[str] = None,
+        model: str | None = None,
         max_retries: int = 3,
         retry_min_wait: float = 1.0,
         retry_max_wait: float = 10.0,
@@ -90,10 +88,10 @@ class UnifiedLLMClient:
 
     async def agenerate(
         self,
-        prompt: Optional[str] = None,
+        prompt: str | None = None,
         *,
-        system_prompt: Optional[str] = None,
-        params: Optional[GenerationParams] = None,
+        system_prompt: str | None = None,
+        params: GenerationParams | None = None,
         **kwargs: Any,
     ) -> GenerationResponse:
         """Generate text asynchronously with automatic retry.
@@ -144,10 +142,10 @@ class UnifiedLLMClient:
 
     def generate(
         self,
-        prompt: Optional[str] = None,
+        prompt: str | None = None,
         *,
-        system_prompt: Optional[str] = None,
-        params: Optional[GenerationParams] = None,
+        system_prompt: str | None = None,
+        params: GenerationParams | None = None,
         **kwargs: Any,
     ) -> GenerationResponse:
         """Generate text synchronously with automatic retry.
@@ -200,8 +198,8 @@ class UnifiedLLMClient:
         self,
         prompts: list[str],
         *,
-        system_prompt: Optional[str] = None,
-        params: Optional[GenerationParams] = None,
+        system_prompt: str | None = None,
+        params: GenerationParams | None = None,
         **kwargs: Any,
     ) -> BatchGenerationResponse:
         """Generate multiple texts asynchronously.
@@ -231,8 +229,8 @@ class UnifiedLLMClient:
         self,
         prompts: list[str],
         *,
-        system_prompt: Optional[str] = None,
-        params: Optional[GenerationParams] = None,
+        system_prompt: str | None = None,
+        params: GenerationParams | None = None,
         **kwargs: Any,
     ) -> BatchGenerationResponse:
         """Generate multiple texts synchronously.

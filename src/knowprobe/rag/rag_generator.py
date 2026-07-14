@@ -81,8 +81,8 @@ class TransformersBackend(GenerationBackend):
     def _load_model(self) -> tuple[Any, Any]:
         if self._tokenizer is None or self._model is None:
             try:
-                from transformers import AutoModelForCausalLM, AutoTokenizer
                 import torch
+                from transformers import AutoModelForCausalLM, AutoTokenizer
 
                 self._tokenizer = AutoTokenizer.from_pretrained(self.model_name)
                 if self._tokenizer.pad_token is None:
@@ -137,9 +137,7 @@ class RAGPromptBuilder:
         self.max_context_length = max_context_length
         logger.info("prompt_builder.init", max_context=max_context_length)
 
-    def build(
-        self, query: RAGQuery, retrieved_chunks: list[RAGChunk], **kwargs: Any
-    ) -> str:
+    def build(self, query: RAGQuery, retrieved_chunks: list[RAGChunk], **kwargs: Any) -> str:
         """Build a RAG prompt with retrieved context."""
         # Build context string
         context_parts: list[str] = []
@@ -156,12 +154,7 @@ class RAGPromptBuilder:
 
         # Build prompt
         system = kwargs.get("system_prompt", self.SYSTEM_PROMPT)
-        prompt = (
-            f"{system}\n\n"
-            f"Context:\n{context}\n\n"
-            f"Question: {query.query_text}\n\n"
-            f"Answer:"
-        )
+        prompt = f"{system}\n\nContext:\n{context}\n\nQuestion: {query.query_text}\n\nAnswer:"
 
         return prompt
 

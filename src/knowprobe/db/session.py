@@ -1,11 +1,11 @@
 """Database session management."""
 
+from collections.abc import Generator
 from contextlib import contextmanager
-from typing import Generator
 
 from sqlalchemy.orm import Session
 
-from knowprobe.db.models import get_engine, get_session_factory
+from knowprobe.db.models import get_session_factory
 
 
 @contextmanager

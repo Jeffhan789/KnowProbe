@@ -8,10 +8,12 @@ import yaml
 from pydantic import BaseModel, Field
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
+from knowprobe import __version__
+
 
 class AppConfig(BaseModel):
     name: str = "KnowProbe"
-    version: str = "2.0.0"
+    version: str = __version__
     environment: str = "development"
     debug: bool = False
     log_level: str = "INFO"
@@ -74,7 +76,11 @@ class APIConfig(BaseModel):
     host: str = "0.0.0.0"
     port: int = 8000
     workers: int = 1
-    cors_origins: list[str] = Field(default_factory=lambda: ["http://localhost:3000", "http://localhost:8501"])
+    api_key: str = ""
+    allow_unauthenticated: bool = True
+    cors_origins: list[str] = Field(
+        default_factory=lambda: ["http://localhost:3000", "http://localhost:8501"]
+    )
 
 
 class DashboardConfig(BaseModel):
@@ -124,7 +130,7 @@ def load_settings(config_path: str | Path | None = None) -> Settings:
     if config_path is not None:
         p = Path(config_path)
         if p.exists():
-            with open(p, "r", encoding="utf-8") as f:
+            with open(p, encoding="utf-8") as f:
                 config_data = yaml.safe_load(f) or {}
 
     # Merge API keys from env vars

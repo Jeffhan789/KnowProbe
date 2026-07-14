@@ -21,13 +21,12 @@
 from __future__ import annotations
 
 import time
-import uuid
 from enum import Enum
 from typing import Any
 
 from pydantic import BaseModel, Field
 
-from knowprobe.core.models import RAGChunk, RAGQuery, RAGPipelineResult
+from knowprobe.core.models import RAGChunk, RAGQuery
 from knowprobe.utils.logging import get_logger
 
 logger = get_logger(__name__)
@@ -36,11 +35,11 @@ logger = get_logger(__name__)
 class ActionType(str, Enum):
     """Agent 可以执行的动作类型。"""
 
-    RETRIEVE = "retrieve"       # 检索新信息
-    REASON = "reason"           # 基于已有信息进行推理
-    REFLECT = "reflect"         # 反思已有答案是否充分
-    ANSWER = "answer"           # 生成最终答案
-    STOP = "stop"               # 停止循环（无法回答或已回答）
+    RETRIEVE = "retrieve"  # 检索新信息
+    REASON = "reason"  # 基于已有信息进行推理
+    REFLECT = "reflect"  # 反思已有答案是否充分
+    ANSWER = "answer"  # 生成最终答案
+    STOP = "stop"  # 停止循环（无法回答或已回答）
 
 
 class AgentStep(BaseModel):
@@ -49,7 +48,9 @@ class AgentStep(BaseModel):
     step_number: int = Field(description="Step index in the reasoning loop")
     thought: str = Field(description="Agent's reasoning about what to do next")
     action: ActionType = Field(description="Chosen action type")
-    action_input: str = Field(default="", description="Action parameters (e.g., query for retrieve)")
+    action_input: str = Field(
+        default="", description="Action parameters (e.g., query for retrieve)"
+    )
     observation: str = Field(default="", description="Result of the action")
     latency_ms: float = Field(default=0.0, description="Step latency in milliseconds")
 
@@ -62,10 +63,16 @@ class AgenticRAGState(BaseModel):
 
     original_query: str = Field(description="User's original query")
     current_query: str = Field(description="Current sub-query or refined query")
-    retrieved_chunks: list[RAGChunk] = Field(default_factory=list, description="All chunks retrieved so far")
-    reasoning_trace: list[AgentStep] = Field(default_factory=list, description="Full reasoning history")
+    retrieved_chunks: list[RAGChunk] = Field(
+        default_factory=list, description="All chunks retrieved so far"
+    )
+    reasoning_trace: list[AgentStep] = Field(
+        default_factory=list, description="Full reasoning history"
+    )
     current_answer: str = Field(default="", description="Draft answer so far")
-    confidence: float = Field(default=0.0, ge=0.0, le=1.0, description="Agent's confidence in current answer")
+    confidence: float = Field(
+        default=0.0, ge=0.0, le=1.0, description="Agent's confidence in current answer"
+    )
     iteration: int = Field(default=0, description="Current iteration count")
     max_iterations: int = Field(default=5, description="Maximum allowed iterations")
 
@@ -80,14 +87,18 @@ class AgenticRAGState(BaseModel):
             f"Original Query: {self.original_query}",
             f"Current Query: {self.current_query}",
             f"Retrieved {len(self.retrieved_chunks)} chunks so far.",
-            f"Current Answer Draft: {self.current_answer[:200]}..." if self.current_answer else "No answer yet.",
+            f"Current Answer Draft: {self.current_answer[:200]}..."
+            if self.current_answer
+            else "No answer yet.",
             f"Confidence: {self.confidence:.2f}",
             f"Iteration: {self.iteration}/{self.max_iterations}",
         ]
         if self.reasoning_trace:
             lines.append("\nPrevious Actions:")
             for step in self.reasoning_trace[-3:]:  # 只展示最近 3 步
-                lines.append(f"  Step {step.step_number}: {step.action.value} -> {step.observation[:80]}...")
+                lines.append(
+                    f"  Step {step.step_number}: {step.action.value} -> {step.observation[:80]}..."
+                )
         return "\n".join(lines)
 
 
@@ -271,6 +282,8 @@ class AgenticRAGEvaluator:
         """
         from knowprobe.llm.types import GenerationRequest
 
+        if self.llm_client is None:
+            raise RuntimeError("LLM decision mode requires an llm_client")
         prompt = self._build_decision_prompt(state)
         request = GenerationRequest(prompt=prompt, model="")
         response = self.llm_client.generate(request)

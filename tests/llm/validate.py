@@ -1,7 +1,7 @@
 """Standalone validation for LLM client - no project dependencies."""
 
-import sys
 import os
+import sys
 import types
 
 src_path = os.path.join(os.path.dirname(__file__), "../../src")
@@ -10,18 +10,22 @@ sys.path.insert(0, src_path)
 # Mock knowprobe.core.config
 mock_config = types.ModuleType("knowprobe.core.config")
 
+
 class MockLocalConfig:
     provider = "ollama"
     base_url = "http://localhost:11434"
     default_model = "llama3.1:8b"
     timeout = 300
 
+
 class MockModelsConfig:
     local = MockLocalConfig()
     api = {}
 
+
 class MockSettings:
     models = MockModelsConfig()
+
 
 mock_config.Settings = MockSettings  # type: ignore
 mock_config.get_settings = MockSettings  # type: ignore
@@ -30,6 +34,8 @@ sys.modules["knowprobe.core.config"] = mock_config
 
 # Mock knowprobe.core.models
 mock_models = types.ModuleType("knowprobe.core.models")
+
+
 class MockModelProvider:
     OLLAMA = type("obj", (object,), {"value": "ollama"})()
     OPENAI = type("obj", (object,), {"value": "openai"})()
@@ -37,16 +43,29 @@ class MockModelProvider:
     CLAUDE = type("obj", (object,), {"value": "claude"})()
     VLLM = type("obj", (object,), {"value": "vllm"})()
     TRANSFORMERS = type("obj", (object,), {"value": "transformers"})()
+
+
 mock_models.ModelProvider = MockModelProvider  # type: ignore
 sys.modules["knowprobe.core.models"] = mock_models
 
 # Mock knowprobe.utils.logging
 mock_logging = types.ModuleType("knowprobe.utils.logging")
+
+
 class MockLogger:
-    def info(self, *args, **kwargs): pass
-    def warning(self, *args, **kwargs): pass
-    def error(self, *args, **kwargs): pass
-    def debug(self, *args, **kwargs): pass
+    def info(self, *args, **kwargs):
+        pass
+
+    def warning(self, *args, **kwargs):
+        pass
+
+    def error(self, *args, **kwargs):
+        pass
+
+    def debug(self, *args, **kwargs):
+        pass
+
+
 mock_logging.configure_logging = lambda *args, **kwargs: None  # type: ignore
 mock_logging.get_logger = lambda name: MockLogger()  # type: ignore
 sys.modules["knowprobe.utils.logging"] = mock_logging
@@ -59,6 +78,7 @@ print("=" * 60)
 # Test 1: Import all LLM modules
 print("\n[1/8] Testing LLM module imports...")
 try:
+    from knowprobe.llm.client import UnifiedLLMClient
     from knowprobe.llm.exceptions import (
         LLMAuthenticationError,
         LLMConfigError,
@@ -69,25 +89,26 @@ try:
         LLMResponseError,
         LLMTimeoutError,
     )
+    from knowprobe.llm.factory import list_providers
+    from knowprobe.llm.providers import (
+        ClaudeClient,
+        DeepSeekClient,
+        OllamaClient,
+        OpenAICompatibleClient,
+    )
     from knowprobe.llm.types import (
-        BatchGenerationRequest,
-        BatchGenerationResponse,
         GenerationParams,
         GenerationRequest,
-        GenerationResponse,
-        LLMMetadata,
         Message,
         Role,
         UsageInfo,
     )
-    from knowprobe.llm.base import BaseLLMClient
-    from knowprobe.llm.providers import OllamaClient, OpenAICompatibleClient, DeepSeekClient, ClaudeClient
-    from knowprobe.llm.factory import create_client, list_providers, register_provider
-    from knowprobe.llm.client import UnifiedLLMClient
+
     print("   ✓ All LLM imports successful")
 except Exception as e:
     print(f"   ✗ Import failed: {e}")
     import traceback
+
     traceback.print_exc()
     sys.exit(1)
 
@@ -201,8 +222,8 @@ print("\n" + "=" * 60)
 print("✅ ALL VALIDATION TESTS PASSED")
 print("=" * 60)
 print("\nSummary:")
-print(f"  - Exception hierarchy: 8 classes")
-print(f"  - Data types: 9 Pydantic models")
+print("  - Exception hierarchy: 8 classes")
+print("  - Data types: 9 Pydantic models")
 print(f"  - Providers: {len(providers)} implemented")
-print(f"  - Unified client: retry + metrics + context manager")
-print(f"  - BaseLLMClient: abstract with sync/async + batch support")
+print("  - Unified client: retry + metrics + context manager")
+print("  - BaseLLMClient: abstract with sync/async + batch support")

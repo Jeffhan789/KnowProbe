@@ -223,7 +223,9 @@ class AdversarialQuestionGenerator:
 
         if "tallest" in lower_q or "highest" in lower_q or "largest" in lower_q:
             for adj in ["second tallest", "third tallest", "shortest", "smallest"]:
-                new_q = lower_q.replace("tallest", adj).replace("highest", adj).replace("largest", adj)
+                new_q = (
+                    lower_q.replace("tallest", adj).replace("highest", adj).replace("largest", adj)
+                )
                 variants.append(
                     AdversarialQuestion(
                         original_question=question,
@@ -285,7 +287,9 @@ class AdversarialEvaluator:
         failures = 0
         strategy_counts: dict[str, dict[str, int]] = {}
 
-        for aq, rag_ans, correct in zip(adversarial_questions, rag_answers, correct_answers):
+        for aq, rag_ans, correct in zip(
+            adversarial_questions, rag_answers, correct_answers, strict=False
+        ):
             # 简单判断：RAG 答案是否包含正确答案（或相反）
             # 对抗性问题的"正确"行为可能不是简单匹配，而是拒绝或修正
             # 这里用简化规则：如果 RAG 答案包含正确关键词，算成功

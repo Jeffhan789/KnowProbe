@@ -17,6 +17,7 @@ class PromptStrategy(str, Enum):
     ZERO_SHOT = "zero_shot"
     FEW_SHOT = "few_shot"
     CHAIN_OF_THOUGHT = "cot"
+    COT = "cot"
     SELF_CONSISTENCY = "self_consistency"
     REACT = "react"
 
@@ -32,6 +33,7 @@ class ModelProvider(str, Enum):
 
 class KnowledgeInput(BaseModel):
     """Structured knowledge input for question generation."""
+
     source_id: str = Field(description="Unique identifier for the knowledge source")
     input_type: str = Field(default="triple", description="triple | schema | text | entity")
     content: str = Field(description="Raw knowledge content")
@@ -41,6 +43,7 @@ class KnowledgeInput(BaseModel):
 
 class GeneratedQuestion(BaseModel):
     """A generated question with provenance."""
+
     id: str | None = None
     question_text: str
     knowledge_input: KnowledgeInput
@@ -56,6 +59,7 @@ class GeneratedQuestion(BaseModel):
 
 class EvaluationResult(BaseModel):
     """Evaluation result for a generated question."""
+
     question_id: str
     metric_name: str
     score: float
@@ -65,6 +69,7 @@ class EvaluationResult(BaseModel):
 
 class ExperimentConfig(BaseModel):
     """Configuration for an experiment run."""
+
     experiment_id: str
     name: str
     description: str = ""
@@ -72,12 +77,13 @@ class ExperimentConfig(BaseModel):
     prompt_strategies: list[PromptStrategy]
     question_types: list[QuestionType]
     evaluation_metrics: list[str]
-    knowledge_sources: list[str]
+    knowledge_sources: list[str] = Field(default_factory=list)
     created_at: datetime = Field(default_factory=datetime.utcnow)
 
 
 class ExperimentResult(BaseModel):
     """Result of an experiment run."""
+
     experiment_id: str
     config: ExperimentConfig
     questions: list[GeneratedQuestion]
@@ -88,6 +94,7 @@ class ExperimentResult(BaseModel):
 
 class RAGDocument(BaseModel):
     """Document for RAG evaluation."""
+
     doc_id: str
     title: str = ""
     content: str
@@ -96,6 +103,7 @@ class RAGDocument(BaseModel):
 
 class RAGChunk(BaseModel):
     """Chunked segment of a RAG document for embedding and retrieval."""
+
     chunk_id: str
     doc_id: str
     content: str
@@ -105,6 +113,7 @@ class RAGChunk(BaseModel):
 
 class RetrievalResult(BaseModel):
     """Result of a single document retrieval operation."""
+
     chunk: RAGChunk
     score: float = Field(description="Similarity score (higher = more relevant)")
     rank: int = Field(default=0, description="Rank in retrieval results (1-based)")
@@ -112,6 +121,7 @@ class RetrievalResult(BaseModel):
 
 class RAGQuery(BaseModel):
     """Query for RAG evaluation."""
+
     query_id: str
     query_text: str
     expected_answer: str = ""
@@ -121,6 +131,7 @@ class RAGQuery(BaseModel):
 
 class RAGResult(BaseModel):
     """Result of a RAG pipeline evaluation."""
+
     query_id: str
     retrieved_docs: list[RAGDocument]
     generated_answer: str
@@ -130,6 +141,7 @@ class RAGResult(BaseModel):
 
 class RAGMetrics(BaseModel):
     """Comprehensive RAG evaluation metrics."""
+
     query_id: str
     retrieval: dict[str, float] = Field(default_factory=dict, description="Retrieval metrics")
     generation: dict[str, float] = Field(default_factory=dict, description="Generation metrics")
@@ -140,6 +152,7 @@ class RAGMetrics(BaseModel):
 
 class RAGPipelineResult(BaseModel):
     """Complete result of a RAG pipeline run including all intermediate outputs."""
+
     query: RAGQuery
     retrieval_results: list[RetrievalResult] = Field(default_factory=list)
     generated_answer: str = ""
@@ -151,6 +164,7 @@ class RAGPipelineResult(BaseModel):
 
 class RAGBenchmarkResult(BaseModel):
     """Result of a full RAG benchmark over multiple queries."""
+
     benchmark_id: str
     pipeline_name: str
     num_queries: int

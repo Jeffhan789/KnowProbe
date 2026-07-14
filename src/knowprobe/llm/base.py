@@ -1,18 +1,15 @@
 """Base LLM client abstract interface."""
 
-
-
 import time
 from abc import ABC, abstractmethod
-from typing import Optional, Union,  Any
+from typing import Any
 
 from knowprobe.utils.logging import get_logger
 
-from .exceptions import LLMError, LLMResponseError, LLMTimeoutError
+from .exceptions import LLMError, LLMResponseError
 from .types import (
     BatchGenerationRequest,
     BatchGenerationResponse,
-    GenerationParams,
     GenerationRequest,
     GenerationResponse,
     LLMMetadata,
@@ -33,7 +30,7 @@ class BaseLLMClient(ABC):
     def __init__(self, model: str, provider: str, **kwargs: Any) -> None:
         self.model = model
         self.provider = provider
-        self._metadata: Optional[LLMMetadata] = None
+        self._metadata: LLMMetadata | None = None
         self._logger = get_logger(f"{__name__}.{provider}")
 
     @property
@@ -161,7 +158,7 @@ class BaseLLMClient(ABC):
                 messages.insert(0, Message(role=Role.SYSTEM, content=request.system_prompt))
             return messages
 
-        messages: list[Message] = []
+        messages = []
         if request.system_prompt:
             messages.append(Message(role=Role.SYSTEM, content=request.system_prompt))
         messages.append(Message(role=Role.USER, content=request.prompt))
@@ -190,10 +187,10 @@ class BaseLLMClient(ABC):
     def _create_response(
         self,
         text: str,
-        finish_reason: Optional[str] = None,
-        usage: Optional[UsageInfo] = None,
+        finish_reason: str | None = None,
+        usage: UsageInfo | None = None,
         latency_ms: float = 0.0,
-        raw_response: Optional[dict[str, Any]] = None,
+        raw_response: dict[str, Any] | None = None,
     ) -> GenerationResponse:
         """Create a standardized GenerationResponse."""
         return GenerationResponse(

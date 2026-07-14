@@ -11,8 +11,8 @@
     3. 展示为什么 GraphRAG 优于纯向量检索。
 """
 
+from knowprobe.core.models import RAGChunk
 from knowprobe.kg.builder import RuleBasedBuilder
-from knowprobe.kg.graph import KnowledgeGraph
 from knowprobe.kg.retriever import EgoGraphRetriever, PathRetriever
 
 # ----------------------------------------------------------------------
@@ -31,12 +31,12 @@ print("=" * 60)
 builder = RuleBasedBuilder()
 graph = builder.build_from_text(SAMPLE_TEXT, source_id="demo_text")
 
-print(f"\n图谱统计:")
+print("\n图谱统计:")
 summary = graph.summary()
 for key, value in summary.items():
     print(f"  {key}: {value}")
 
-print(f"\n三元组列表:")
+print("\n三元组列表:")
 for s, r, o in graph.to_triples():
     print(f"  ({s}) --[{r}]--> ({o})")
 
@@ -49,17 +49,25 @@ print("=" * 60)
 
 # 将节点映射到文本片段（真实场景中来自文档）
 chunk_map = {
-    "albert_einstein": type("Chunk", (), {"chunk_id": "c1", "content": "Einstein was a theoretical physicist."})(),
-    "germany": type("Chunk", (), {"chunk_id": "c2", "content": "Germany is a country in Europe."})(),
-    "nobel_prize_in_physics": type("Chunk", (), {"chunk_id": "c3", "content": "The Nobel Prize in Physics is awarded annually."})(),
-    "marie_curie": type("Chunk", (), {"chunk_id": "c4", "content": "Marie Curie was a pioneering physicist."})(),
+    "albert_einstein": type(
+        "Chunk", (), {"chunk_id": "c1", "content": "Einstein was a theoretical physicist."}
+    )(),
+    "germany": type(
+        "Chunk", (), {"chunk_id": "c2", "content": "Germany is a country in Europe."}
+    )(),
+    "nobel_prize_in_physics": type(
+        "Chunk",
+        (),
+        {"chunk_id": "c3", "content": "The Nobel Prize in Physics is awarded annually."},
+    )(),
+    "marie_curie": type(
+        "Chunk", (), {"chunk_id": "c4", "content": "Marie Curie was a pioneering physicist."}
+    )(),
 }
 
 # 为了 chunk_map 兼容，需要转换为 RAGChunk
-from knowprobe.core.models import RAGChunk
 chunk_map_typed = {
-    k: RAGChunk(chunk_id=f"demo_{k}", doc_id=k, content=v.content)
-    for k, v in chunk_map.items()
+    k: RAGChunk(chunk_id=f"demo_{k}", doc_id=k, content=v.content) for k, v in chunk_map.items()
 }
 
 ego_retriever = EgoGraphRetriever(graph, chunk_map=chunk_map_typed, k_hops=2)
@@ -105,7 +113,7 @@ print(f"边数: {graph.num_edges}")
 print(f"图密度: {graph.density:.4f}")
 print(f"平均度: {graph.avg_degree:.2f}")
 print(f"关系类型: {graph.relation_types}")
-print(f"\n度分布（Top 5）:")
+print("\n度分布（Top 5）:")
 for node_id, degree in graph.degree_distribution().items():
     print(f"  {node_id}: {degree}")
 

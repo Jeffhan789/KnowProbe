@@ -8,8 +8,10 @@
 
 > **Knowledge-Grounded Question Generation and RAG Evaluation Platform**
 >
-> A production-ready, engineering-grade toolkit for LLM-based question generation from structured knowledge, multi-strategy evaluation, and **GraphRAG / Agentic RAG / Adversarial** pipeline assessment.
+> A production-minded toolkit for LLM-based question generation from structured knowledge, multi-strategy evaluation, and **GraphRAG / Agentic RAG / adversarial** pipeline assessment.
 
+[![CI](https://github.com/Jeffhan789/KnowProbe/actions/workflows/ci.yml/badge.svg)](https://github.com/Jeffhan789/KnowProbe/actions/workflows/ci.yml)
+[![Version](https://img.shields.io/badge/version-v3.0.0-blueviolet)](https://github.com/Jeffhan789/KnowProbe/releases)
 [![Python](https://img.shields.io/badge/python-3.11%2B-blue)](https://www.python.org/)
 [![License](https://img.shields.io/badge/license-MIT-green)](LICENSE)
 [![FastAPI](https://img.shields.io/badge/FastAPI-0.111%2B-009688)](https://fastapi.tiangolo.com/)
@@ -25,11 +27,11 @@ KnowProbe v3 is an **engineering upgrade** of a Final Year Project (COMP390) res
 
 **What makes it different:**
 - **Pedagogical focus** — Every module includes detailed docstrings and inline comments that explain *why*, not just *how*. Three Chinese tutorials cover KG construction, Agentic RAG, and multi-hop / adversarial evaluation.
-- **Complete engineering stack** — CLI (Typer), REST API (FastAPI), Dashboard (Streamlit), Docker, CI/CD, database persistence, configuration management.
+- **Complete engineering stack** — CLI (Typer), REST API (FastAPI), Dashboard (Streamlit), Docker, CI, database persistence, configuration management.
 - **Frontier RAG coverage** — Vector RAG, **GraphRAG** (ego-graph & path retrieval), **Agentic RAG** (ReAct reasoning loop), and **Adversarial Evaluation** (robustness testing).
 
 **Who is this for?**
-- **Job seekers** who need a portfolio project that demonstrates backend engineering + ML systems skills.
+- **Developers and teams** who need a modular reference implementation for question generation and retrieval evaluation.
 - **Learners** who want to understand RAG internals through clean, well-commented code.
 - **Researchers** who need a reproducible evaluation framework for LLM question generation and RAG benchmarking.
 
@@ -49,7 +51,7 @@ PYTHONPATH=src python examples/graphrag_demo/graphrag_demo.py
 PYTHONPATH=src python examples/agentic_demo/agentic_demo.py
 
 # Start API + Dashboard
-docker-compose -f docker/docker-compose.yml up --build
+docker compose -f docker/docker-compose.yml up --build
 # API at http://localhost:8000  |  Dashboard at http://localhost:8501
 ```
 
@@ -92,17 +94,17 @@ KnowProbe is designed as a **learning scaffold**. Each module teaches one concep
 
 | Module | What you learn | Key files |
 |--------|---------------|-----------|
-| `src/knowprobe/kg/` | How Knowledge Graphs work; why GraphRAG beats vector-only RAG | `graph.py`, `builder.py`, `retriever.py` |
-| `src/knowprobe/agentic/` | ReAct pattern; why fixed RAG pipelines fail on complex queries | `agent.py` |
+| `src/knowprobe/kg/` | How Knowledge Graphs work; GraphRAG and vector-retrieval trade-offs | `graph.py`, `builder.py`, `retriever.py` |
+| `src/knowprobe/agentic/` | ReAct pattern; limits of fixed retrieval pipelines on complex queries | `agent.py` |
 | `src/knowprobe/benchmarks/` | Multi-hop reasoning; HotpotQA-style evaluation | `multihop.py` |
 | `src/knowprobe/adversarial/` | Systematic robustness testing; RAG failure modes | `generator.py` |
-| `docs/tutorials/` | 3 Chinese tutorials with interview-ready talking points | `01_knowledge_graph.md`, `02_agentic_rag.md`, `03_multihop_and_adversarial.md` |
+| `docs/tutorials/` | 3 Chinese tutorials with architecture discussion notes | `01_knowledge_graph.md`, `02_agentic_rag.md`, `03_multihop_and_adversarial.md` |
 
 ### Key Features
 
 #### v3.0 New — Knowledge Graph & GraphRAG
 - **RuleBasedBuilder** — Zero-cost KG extraction from text using regex patterns.
-- **LLMBasedBuilder** — LLM-powered entity/relation extraction (production-grade).
+- **LLMBasedBuilder** — Configurable LLM-powered entity and relation extraction.
 - **EgoGraphRetriever** — k-hop subgraph retrieval for local aggregation queries.
 - **PathRetriever** — Multi-hop path retrieval for relationship queries.
 - **HybridGraphRetriever** — Combines dense vector + graph traversal.
@@ -125,15 +127,15 @@ KnowProbe is designed as a **learning scaffold**. Each module teaches one concep
 - Streamlit dashboard
 - Docker deployment
 
-### Interview Talking Points
+### Architecture Notes
 
-> These are built into the code comments and tutorials. Study them to explain the project in interviews.
+> These are built into the code comments and tutorials. Study them to review the project architecture.
 
-**"Why did you build this?"**
-> My FYP studied LLM question generation from structured knowledge, but the prototype was hard to reproduce and lacked evaluation dimensions. KnowProbe v2.0 turned it into a deployable platform. v3.0 adds GraphRAG and Agentic RAG because those are the frontier directions in 2025-2026 RAG research.
+**"Why does this platform exist?"**
+> The original research prototype was difficult to reproduce and covered too few evaluation dimensions. KnowProbe turns that work into a tested platform and adds graph, agentic, multi-hop, and adversarial evaluation paths behind consistent interfaces.
 
 **"Why GraphRAG?"**
-> Vector retrieval fails on multi-hop questions because intermediate facts are semantically dissimilar. A knowledge graph explicitly models entity relationships, enabling path-based retrieval across documents.
+> Vector retrieval can underperform on multi-hop questions when intermediate facts are semantically dissimilar. A knowledge graph explicitly models entity relationships, enabling path-based retrieval across documents.
 
 **"Why Agentic RAG?"**
 > Fixed RAG pipelines retrieve once regardless of query complexity. Agentic RAG uses a ReAct loop to dynamically decide: "Do I need more retrieval? Should I decompose this query? Is my answer confident enough?"
@@ -164,11 +166,11 @@ KnowProbe v3 是本科毕业设计（COMP390）研究原型的**工程化升级*
 
 **核心差异点：**
 - **教学导向** — 每个模块都有详细中文注释，解释"为什么"而不仅是"怎么做"。三篇中文教程覆盖知识图谱、Agentic RAG、多跳/对抗性评估。
-- **完整工程栈** — CLI (Typer)、REST API (FastAPI)、Dashboard (Streamlit)、Docker、CI/CD、数据库持久化、配置管理。
+- **完整工程栈** — CLI (Typer)、REST API (FastAPI)、Dashboard (Streamlit)、Docker、CI、数据库持久化、配置管理。
 - **前沿 RAG 覆盖** — 向量 RAG、**GraphRAG**（子图/路径检索）、**Agentic RAG**（ReAct 推理循环）、**对抗性评估**（鲁棒性测试）。
 
 **适用人群：**
-- **求职者** — 需要展示后端工程 + ML 系统能力的作品集。
+- **开发者** — 需要问题生成与检索评估模块化参考实现。
 - **学习者** — 通过整洁、注释充分的代码理解 RAG 内部原理。
 - **研究者** — 需要可复现的 LLM 问题生成与 RAG 基准测试框架。
 
@@ -198,7 +200,7 @@ KnowProbe 设计为**渐进式学习脚手架**。每个模块教授一个核心
 | `src/knowprobe/agentic/` | ReAct 模式；为什么固定 RAG 流水线在复杂查询上会失败 | `agent.py` |
 | `src/knowprobe/benchmarks/` | 多跳推理；HotpotQA 式评估方法 | `multihop.py` |
 | `src/knowprobe/adversarial/` | 系统性鲁棒性测试；RAG 失效模式 | `generator.py` |
-| `docs/tutorials/` | 三篇中文教程，含面试谈资 | `01_knowledge_graph.md`, `02_agentic_rag.md`, `03_multihop_and_adversarial.md` |
+| `docs/tutorials/` | 三篇中文教程，含架构要点 | `01_knowledge_graph.md`, `02_agentic_rag.md`, `03_multihop_and_adversarial.md` |
 
 ### v3.0 新功能
 
@@ -219,12 +221,12 @@ KnowProbe 设计为**渐进式学习脚手架**。每个模块教授一个核心
 - **四种对抗策略** — 混淆实体、否定形式、多跳变体、边界情况。
 - **鲁棒性评分** — 按策略统计攻击成功率。
 
-### 面试谈资
+### 架构要点
 
-> 以下谈资已嵌入代码注释和教程中。面试前复习可直接引用。
+> 以下说明给出主要架构选择及其取舍，并可作为深入阅读代码和教程的索引。
 
 **"你为什么做这个项目？"**
-> 毕设研究了 LLM 从结构化知识生成问题，但原型不可复现、评估维度单一。KnowProbe v2.0 将其工程化为可部署平台。v3.0 加入 GraphRAG 和 Agentic RAG，因为这是 2025-2026 年 RAG 研究的前沿方向。
+> 原始研究聚焦 LLM 从结构化知识生成问题，但原型复现成本高、评估维度单一。KnowProbe 将其工程化为经过测试的平台，并用统一接口加入图检索、智能体、多跳和对抗评估路径。
 
 **"为什么需要 GraphRAG？"**
 > 向量检索在多跳问题上会失败，因为中间事实在语义上不相似。知识图谱显式建模实体关系，支持跨文档的路径检索。
@@ -247,7 +249,7 @@ KnowProbe 设计为**渐进式学习脚手架**。每个模块教授一个核心
 #### v2.0.0 (2025-07)
 - 完整工程化升级：多后端 LLM、提示策略引擎、RAG 评估
 - RESTful API、Streamlit Dashboard、CLI、Docker 支持
-- 数据库持久化、配置管理、CI/CD
+- 数据库持久化、配置管理、CI
 
 #### v1.0.0 (原始研究)
 - COMP390 本科毕业设计：LLM 问题生成的受控研究

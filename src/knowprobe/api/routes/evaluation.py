@@ -3,7 +3,6 @@
 from __future__ import annotations
 
 import time
-from typing import Any
 
 from fastapi import APIRouter, HTTPException, status
 
@@ -200,7 +199,11 @@ async def evaluate_batch(
             detail="questions must not be empty",
         )
 
-    references = request.references or [None] * total
+    references: list[str | None]
+    if request.references is None:
+        references = [None for _ in range(total)]
+    else:
+        references = list(request.references)
     if len(references) != total:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
@@ -215,7 +218,7 @@ async def evaluate_batch(
         )
 
     results: list[EvaluationResponse] = []
-    for question, ref in zip(request.questions, references):
+    for question, ref in zip(request.questions, references, strict=False):
         item_start = time.perf_counter()
         qid = question.id or "unknown"
         try:

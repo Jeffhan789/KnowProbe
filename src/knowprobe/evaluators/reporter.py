@@ -31,6 +31,7 @@ logger = get_logger(__name__)
 # Report data structures
 # ---------------------------------------------------------------------------
 
+
 @dataclass(frozen=True)
 class StatisticRow:
     """A single row in a statistics table."""
@@ -212,6 +213,7 @@ class EvaluationReport:
 # Reporter
 # ---------------------------------------------------------------------------
 
+
 class EvaluationReporter:
     """Generate statistical reports from evaluation data.
 
@@ -368,12 +370,14 @@ class EvaluationReporter:
 
         for item in data:
             key = tuple(str(item.get(f, "unknown")) for f in group_by)
-            for field in metric_fields:
-                value = item.get(field)
+            for metric_field in metric_fields:
+                value = item.get(metric_field)
                 if isinstance(value, (int, float)):
-                    grouped[key][field].append(float(value))
+                    grouped[key][metric_field].append(float(value))
                 elif isinstance(value, list) and value:
-                    grouped[key][field].extend(float(v) for v in value if isinstance(v, (int, float)))
+                    grouped[key][metric_field].extend(
+                        float(v) for v in value if isinstance(v, (int, float))
+                    )
 
         rows: list[StatisticRow] = []
         for key, metrics in grouped.items():
@@ -435,8 +439,17 @@ class EvaluationReporter:
                 writer = csv.DictWriter(
                     f,
                     fieldnames=[
-                        "group", "subgroup", "metric", "count", "mean",
-                        "std", "median", "min", "max", "ci_lower", "ci_upper",
+                        "group",
+                        "subgroup",
+                        "metric",
+                        "count",
+                        "mean",
+                        "std",
+                        "median",
+                        "min",
+                        "max",
+                        "ci_lower",
+                        "ci_upper",
                     ],
                 )
                 writer.writeheader()
@@ -557,19 +570,21 @@ class EvaluationReporter:
                 pct_change = (diff / mean1 * 100) if mean1 != 0 else 0.0
                 effect_size = EvaluationReporter.compute_effect_size(g1_data, g2_data)
 
-                results.append({
-                    "comparison_type": "pairwise",
-                    "baseline": g1_name,
-                    "comparison": g2_name,
-                    "metric": metric_name,
-                    "baseline_mean": mean1,
-                    "comp_mean": mean2,
-                    "diff": diff,
-                    "percent_change": pct_change,
-                    "p_value": p_value,
-                    "effect_size": effect_size,
-                    "significant": p_value < 0.05 if p_value is not None else False,
-                })
+                results.append(
+                    {
+                        "comparison_type": "pairwise",
+                        "baseline": g1_name,
+                        "comparison": g2_name,
+                        "metric": metric_name,
+                        "baseline_mean": mean1,
+                        "comp_mean": mean2,
+                        "diff": diff,
+                        "percent_change": pct_change,
+                        "p_value": p_value,
+                        "effect_size": effect_size,
+                        "significant": p_value < 0.05 if p_value is not None else False,
+                    }
+                )
 
         return results
 
@@ -619,16 +634,8 @@ class EvaluationReporter:
                 lines.append("\\hline")
                 for comp in report.comparisons:
                     sig = "*" if comp.significant else ""
-                    p_val = (
-                        f"{comp.p_value:.4f}{sig}"
-                        if comp.p_value is not None
-                        else "N/A"
-                    )
-                    es = (
-                        f"{comp.effect_size:.3f}"
-                        if comp.effect_size is not None
-                        else "N/A"
-                    )
+                    p_val = f"{comp.p_value:.4f}{sig}" if comp.p_value is not None else "N/A"
+                    es = f"{comp.effect_size:.3f}" if comp.effect_size is not None else "N/A"
                     lines.append(
                         f"{comp.baseline} vs {comp.comparison} & {comp.metric} & "
                         f"{comp.diff:+.3f} & {comp.percent_change:+.1f}\\% & "

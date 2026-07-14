@@ -2,11 +2,12 @@
 
 from __future__ import annotations
 
+import secrets
 from functools import lru_cache
 from typing import Annotated
 
 from fastapi import Depends, Header, HTTPException, Request, status
-from fastapi.security import HTTPBearer
+from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
 
 from knowprobe.core.config import Settings, get_settings
 from knowprobe.utils.logging import get_logger
@@ -95,7 +96,7 @@ CommonParamsDep = Annotated[CommonQueryParams, Depends()]
 # ---------------------------------------------------------------------------
 async def optional_api_key(
     settings: SettingsDep,
-    authorization: Annotated[str | None, Depends(security)] = None,
+    authorization: Annotated[HTTPAuthorizationCredentials | None, Depends(security)] = None,
 ) -> bool:
     """Optional API key validation.
 
@@ -103,11 +104,30 @@ async def optional_api_key(
     Returns True if a valid bearer token is provided.
     Raises 403 if an invalid token is provided.
     """
-    # In a production scenario, you'd check against a configured API key.
-    # For now, this is a placeholder that allows open access.
-    if authorization is None:
+    configured_key = settings.api.api_key
+    if not configured_key:
+        if (
+            settings.app.environment.lower() == "production"
+            and not settings.api.allow_unauthenticated
+        ):
+            raise HTTPException(
+                status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
+                detail="API authentication is required but no API key is configured",
+            )
         return True
-    # Token validation logic would go here.
+
+    if authorization is None:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Bearer token required",
+            headers={"WWW-Authenticate": "Bearer"},
+        )
+
+    if not secrets.compare_digest(authorization.credentials, configured_key):
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Invalid API key",
+        )
     return True
 
 
